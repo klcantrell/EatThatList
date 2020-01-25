@@ -1,5 +1,9 @@
-import React from 'react';
-import { StyleSheet, KeyboardAvoidingView } from 'react-native';
+import React, { FunctionComponent } from 'react';
+import {
+  StyleSheet,
+  KeyboardAvoidingView,
+  TextInput as ReactNativeTextInput,
+} from 'react-native';
 import {
   View,
   Button,
@@ -15,34 +19,51 @@ interface Props {
   handleAdd: () => void;
 }
 
-class Poster extends React.Component<Props> {
-  render() {
-    const { handleAdd } = this.props;
-    return (
-      <View style={styles.container} pointerEvents="box-none">
-        <KeyboardAvoidingView
-          style={styles.keyboardView}
-          behavior="position"
-          keyboardVerticalOffset={-70}
-          pointerEvents="box-none"
-        >
+const Poster: FunctionComponent<Props> = ({ handleAdd }) => {
+  const [inputVisible, setInputVisible] = React.useState(false);
+
+  const textInput = React.useRef<ReactNativeTextInput>(null);
+
+  React.useEffect(() => {
+    if (inputVisible && textInput.current) {
+      textInput.current.focus();
+    }
+  }, [inputVisible]);
+
+  const toggleInput = () => setInputVisible(!inputVisible);
+
+  return (
+    <View style={styles.container} pointerEvents="box-none">
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior="position"
+        keyboardVerticalOffset={-70}
+        pointerEvents="box-none"
+      >
+        {inputVisible && (
           <Form style={styles.form}>
-            <Item style={styles.input} stackedLabel>
-              <Label>Todo</Label>
-              <Input />
+            <Item style={styles.inputGroup} floatingLabel>
+              <Label style={styles.label}>Todo</Label>
+              <Input
+                style={styles.textInput}
+                returnKeyType="send"
+                keyboardAppearance="dark"
+                onBlur={toggleInput}
+                getRef={(c: any) => (textInput.current = c._root)}
+              />
             </Item>
-            <Button style={styles.addBtn}>
+            <Button style={styles.addBtn} rounded>
               <Text>Sup</Text>
             </Button>
           </Form>
-        </KeyboardAvoidingView>
-        <Button rounded style={styles.fabBtn} onPress={() => handleAdd()}>
-          <Icon name="flame" />
-        </Button>
-      </View>
-    );
-  }
-}
+        )}
+      </KeyboardAvoidingView>
+      <Button rounded style={styles.fabBtn} onPress={toggleInput}>
+        <Icon name="flame" />
+      </Button>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   fabBtn: {
@@ -65,15 +86,22 @@ const styles = StyleSheet.create({
     position: 'relative',
     bottom: 70,
     marginHorizontal: 1,
-    backgroundColor: 'purple',
+    backgroundColor: '#444',
     flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 5,
+    borderRadius: 28,
   },
-  input: {
+  inputGroup: {
     flexGrow: 1,
-    marginRight: 5,
     marginBottom: 3,
+    marginLeft: 30,
+    height: 40,
+  },
+  textInput: {
+    color: 'white',
+  },
+  label: {
+    marginTop: -15,
+    color: 'grey',
   },
   addBtn: {
     height: '100%',
