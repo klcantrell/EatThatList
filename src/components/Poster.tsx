@@ -1,6 +1,15 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { View, Text, Button, Icon } from 'native-base';
+import { StyleSheet, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  Button,
+  Icon,
+  Text,
+  Form,
+  Item,
+  Label,
+  Input,
+} from 'native-base';
 
 interface Props {
   handleAdd: () => void;
@@ -11,8 +20,23 @@ class Poster extends React.Component<Props> {
     const { handleAdd } = this.props;
     return (
       <View style={styles.container} pointerEvents="box-none">
-        <Text style={styles.text}>YO</Text>
-        <Button rounded style={styles.button} onPress={() => handleAdd()}>
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior="position"
+          keyboardVerticalOffset={-70}
+          pointerEvents="box-none"
+        >
+          <Form style={styles.form}>
+            <Item style={styles.input} stackedLabel>
+              <Label>Todo</Label>
+              <Input />
+            </Item>
+            <Button style={styles.addBtn}>
+              <Text>Sup</Text>
+            </Button>
+          </Form>
+        </KeyboardAvoidingView>
+        <Button rounded style={styles.fabBtn} onPress={() => handleAdd()}>
           <Icon name="flame" />
         </Button>
       </View>
@@ -21,7 +45,7 @@ class Poster extends React.Component<Props> {
 }
 
 const styles = StyleSheet.create({
-  button: {
+  fabBtn: {
     backgroundColor: 'red',
     width: 50,
     height: 50,
@@ -34,13 +58,25 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 1, height: 3 },
     shadowRadius: 3,
   },
-  text: {
+  keyboardView: {
+    width: '100%',
+  },
+  form: {
     position: 'relative',
-    bottom: 80,
-    right: 20,
-    width: '75%',
-    height: 80,
-    borderWidth: 1,
+    bottom: 70,
+    marginHorizontal: 1,
+    backgroundColor: 'purple',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 5,
+  },
+  input: {
+    flexGrow: 1,
+    marginRight: 5,
+    marginBottom: 3,
+  },
+  addBtn: {
+    height: '100%',
   },
   container: {
     position: 'absolute',
