@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from 'react';
-import { StyleSheet, KeyboardAvoidingView } from 'react-native';
-import { View, Button, Icon, Text, Form, Item, Input } from 'native-base';
+import { StyleSheet, KeyboardAvoidingView, ViewStyle } from 'react-native';
+import { View, Button, Icon, Text, Item, Input } from 'native-base';
 import Animated, { Easing } from 'react-native-reanimated';
 
 const {
@@ -17,7 +17,12 @@ const {
 
 const INPUT_HIDDEN_OFFSET = -500;
 
-const runTiming = (clock, value, dest, easing) => {
+const runTiming = (
+  clock: Animated.Clock,
+  value: number,
+  dest: number,
+  easing: Animated.EasingFunction
+) => {
   const state = {
     finished: new Value(0),
     position: new Value(0),
@@ -65,17 +70,18 @@ const Poster: FunctionComponent<Props> = ({ handleAdd }) => {
     }
   }, [inputVisible]);
 
-  let transX;
-  if (inputVisible) {
-    transX = runTiming(new Clock(), -500, 0, Easing.inOut(Easing.ease));
-  } else {
-    transX = runTiming(
-      new Clock(),
-      0,
-      INPUT_HIDDEN_OFFSET,
-      Easing.inOut(Easing.exp)
-    );
-  }
+  const transX: Animated.Node<number> = runTiming(
+    new Clock(),
+    -500,
+    0,
+    Easing.inOut(Easing.ease)
+  );
+  const transY: Animated.Node<number> = runTiming(
+    new Clock(),
+    0,
+    -INPUT_HIDDEN_OFFSET,
+    Easing.in(Easing.ease)
+  );
 
   const toggleInput = () => setInputVisible(!inputVisible);
 
@@ -88,7 +94,18 @@ const Poster: FunctionComponent<Props> = ({ handleAdd }) => {
         pointerEvents="box-none"
       >
         <Animated.View
-          style={[styles.form, { transform: [{ translateX: transX }] }]}
+          style={
+            [
+              styles.form,
+              {
+                transform: [
+                  inputVisible
+                    ? { translateX: transX }
+                    : { translateY: transY },
+                ],
+              },
+            ] as ViewStyle
+          }
         >
           <Item style={styles.inputGroup}>
             <Input
@@ -134,7 +151,7 @@ const styles = StyleSheet.create({
     bottom: 70,
     transform: [{ translateX: INPUT_HIDDEN_OFFSET }],
     marginHorizontal: 1,
-    backgroundColor: '#444',
+    backgroundColor: '#dbdbdb',
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: 8,
@@ -147,7 +164,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   textInput: {
-    color: 'white',
+    color: '#111',
   },
   addBtn: {
     height: '90%',

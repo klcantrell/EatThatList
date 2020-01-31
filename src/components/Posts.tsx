@@ -1,6 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { FlatList } from 'react-native';
 import { ListItem, Text } from 'native-base';
+import SwipeableRow from './SwipeableRow';
 
 interface Props {
   list: Array<number>;
@@ -13,9 +14,11 @@ const Posts: FunctionComponent<Props> = ({ list, innerRef }) => {
       ref={innerRef}
       data={[...list].reverse()}
       renderItem={({ item }) => (
-        <ListItem>
-          <Text>{item}</Text>
-        </ListItem>
+        <SwipeableRow actionText="BYEEEE">
+          <ListItem>
+            <Text>{item}</Text>
+          </ListItem>
+        </SwipeableRow>
       )}
       keyExtractor={item => String(item)}
       inverted
