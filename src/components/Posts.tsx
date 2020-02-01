@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from 'react';
+import React from 'react';
 import { FlatList } from 'react-native';
 import { ListItem, Text } from 'native-base';
 import SwipeableRow from './SwipeableRow';
@@ -8,7 +8,7 @@ interface Props {
   innerRef: React.Ref<FlatList<number>>;
 }
 
-const Posts: FunctionComponent<Props> = ({ list, innerRef }) => {
+const Posts: React.FC<Props> = ({ list, innerRef }) => {
   return (
     <FlatList
       ref={innerRef}

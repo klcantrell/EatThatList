@@ -1,90 +1,43 @@
-import React, { RefObject } from 'react';
-import { FlatList } from 'react-native';
+import React from 'react';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 import { AppLoading } from 'expo';
-import { Container, Header, Title, Body } from 'native-base';
 import { loadAsync as loadFontAsync } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import Posts from './src/components/Posts';
-import Poster from './src/components/Poster';
+import Main from './src/components/Main';
+import Login from './src/Login';
 
-interface State {
-  list: Array<number>;
-  fontsLoaded: boolean;
-}
+const AppNavigator = createStackNavigator({
+  Login: {
+    screen: Login,
+  },
+  Main: {
+    screen: Main,
+  },
+});
 
-interface Props {}
+const AppContainer = createAppContainer(AppNavigator);
 
-export default class App extends React.Component<Props, State> {
-  list: RefObject<FlatList<number>> = React.createRef();
+const App: React.FC = () => {
+  const [fontsLoaded, setFontsLoaded] = React.useState(false);
 
-  state = {
-    fontsLoaded: false,
-    list: [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20,
-      21,
-      22,
-      23,
-      24,
-    ],
-  };
-
-  async componentDidMount() {
-    await loadFontAsync({
-      Roboto: require('native-base/Fonts/Roboto.ttf'),
-      Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
-      ...Ionicons.font,
-    });
-    this.setState({ fontsLoaded: true });
-  }
-
-  handleAdd = () => {
-    this.setState(
-      {
-        list: [
-          ...this.state.list,
-          this.state.list[this.state.list.length - 1] + 1,
-        ],
-      },
-      () => {
-        this.list.current.scrollToIndex({ index: 0 });
-      }
-    );
-  };
-
-  render() {
-    if (!this.state.fontsLoaded) {
-      return <AppLoading />;
+  React.useEffect(() => {
+    async function loadFonts() {
+      await loadFontAsync({
+        Roboto: require('native-base/Fonts/Roboto.ttf'),
+        Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
+        ...Ionicons.font,
+      });
     }
+    loadFonts();
+    setFontsLoaded(true);
+  }, []);
 
-    return (
-      <Container>
-        <Header>
-          <Body>
-            <Title>Sup</Title>
-          </Body>
-        </Header>
-        <Posts list={this.state.list} innerRef={this.list} />
-        <Poster handleAdd={this.handleAdd} />
-      </Container>
-    );
+  if (!fontsLoaded) {
+    return <AppLoading />;
   }
-}
+
+  return <AppContainer />;
+};
+
+export default App;

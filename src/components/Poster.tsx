@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from 'react';
+import React from 'react';
 import { StyleSheet, KeyboardAvoidingView, ViewStyle } from 'react-native';
 import { View, Button, Icon, Text, Item, Input } from 'native-base';
 import Animated, { Easing } from 'react-native-reanimated';
@@ -59,7 +59,7 @@ interface Props {
   handleAdd: () => void;
 }
 
-const Poster: FunctionComponent<Props> = ({ handleAdd }) => {
+const Poster: React.FC<Props> = ({ handleAdd }) => {
   const [inputVisible, setInputVisible] = React.useState(false);
 
   const textInput = React.useRef(null);
@@ -90,8 +90,8 @@ const Poster: FunctionComponent<Props> = ({ handleAdd }) => {
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior="position"
-        keyboardVerticalOffset={-68}
         pointerEvents="box-none"
+        keyboardVerticalOffset={70}
       >
         <Animated.View
           style={
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
   form: {
     position: 'relative',
-    bottom: 70,
+    bottom: 20,
     transform: [{ translateX: INPUT_HIDDEN_OFFSET }],
     marginHorizontal: 1,
     backgroundColor: '#dbdbdb',
