@@ -5,7 +5,7 @@ import { AppLoading } from 'expo';
 import { loadAsync as loadFontAsync } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import Main from './src/components/Main';
-import Login from './src/Login';
+import Login from './src/components/Login';
 
 const AppNavigator = createStackNavigator({
   Login: {
@@ -22,13 +22,13 @@ const App: React.FC = () => {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    async function loadFonts() {
+    const loadFonts = async () => {
       await loadFontAsync({
         Roboto: require('native-base/Fonts/Roboto.ttf'),
         Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
         ...Ionicons.font,
       });
-    }
+    };
     loadFonts();
     setFontsLoaded(true);
   }, []);

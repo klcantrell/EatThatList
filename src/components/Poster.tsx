@@ -1,78 +1,42 @@
 import React from 'react';
-import { StyleSheet, KeyboardAvoidingView, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  KeyboardAvoidingView,
+  ViewStyle,
+  Keyboard,
+} from 'react-native';
 import { View, Button, Icon, Text, Item, Input } from 'native-base';
 import Animated, { Easing } from 'react-native-reanimated';
+import { runTiming } from '../utils/animations';
+import { usePrevious } from '../utils/hooks';
 
-const {
-  Clock,
-  Value,
-  set,
-  cond,
-  startClock,
-  clockRunning,
-  timing,
-  stopClock,
-  block,
-} = Animated;
+const { Clock } = Animated;
 
 const INPUT_HIDDEN_OFFSET = -500;
 
-const runTiming = (
-  clock: Animated.Clock,
-  value: number,
-  dest: number,
-  easing: Animated.EasingFunction
-) => {
-  const state = {
-    finished: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-    frameTime: new Value(0),
-  };
-
-  const config = {
-    duration: 300,
-    toValue: new Value(0),
-    easing,
-  };
-
-  return block([
-    cond(
-      clockRunning(clock),
-      [set(config.toValue, dest)],
-      [
-        set(state.finished, 0),
-        set(state.time, 0),
-        set(state.position, value),
-        set(state.frameTime, 0),
-        set(config.toValue, dest),
-        startClock(clock),
-      ]
-    ),
-    timing(clock, state, config),
-    cond(state.finished, stopClock(clock)),
-    state.position,
-  ]);
-};
-
 interface Props {
-  handleAdd: () => void;
+  handleAdd: (item: number) => Promise<number>;
 }
 
 const Poster: React.FC<Props> = ({ handleAdd }) => {
   const [inputVisible, setInputVisible] = React.useState(false);
-
+  const [inputValue, setInputValue] = React.useState('');
   const textInput = React.useRef(null);
+  const previousInputVisible = usePrevious(inputVisible);
+
+  const isInitialRenderOfInput = !previousInputVisible && !inputVisible;
+  const wasHidden = !previousInputVisible && inputVisible;
+  const wasVisible = previousInputVisible && !inputVisible;
 
   React.useEffect(() => {
-    if (inputVisible && textInput.current && textInput.current._root) {
+    if (wasHidden && textInput.current && textInput.current._root) {
       textInput.current._root.focus();
     }
   }, [inputVisible]);
 
   const transX: Animated.Node<number> = runTiming(
     new Clock(),
-    -500,
+    INPUT_HIDDEN_OFFSET,
     0,
     Easing.inOut(Easing.ease)
   );
@@ -100,8 +64,20 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
               {
                 transform: [
                   inputVisible
-                    ? { translateX: transX }
-                    : { translateY: transY },
+                    ? {
+                        translateX: isInitialRenderOfInput
+                          ? INPUT_HIDDEN_OFFSET
+                          : wasHidden
+                          ? transX
+                          : 0,
+                      }
+                    : {
+                        translateY: isInitialRenderOfInput
+                          ? -INPUT_HIDDEN_OFFSET
+                          : wasVisible
+                          ? transY
+                          : 0,
+                      },
                 ],
               },
             ] as ViewStyle
@@ -110,14 +86,28 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
           <Item style={styles.inputGroup}>
             <Input
               style={styles.textInput}
+              onChangeText={text => setInputValue(text)}
               placeholder="Todo"
               returnKeyType="send"
               keyboardAppearance="dark"
               onBlur={toggleInput}
+              value={inputValue}
               ref={textInput}
+              onSubmitEditing={() => {
+                handleAdd(Number(inputValue));
+                setInputValue('');
+                Keyboard.dismiss();
+              }}
             />
           </Item>
-          <Button style={styles.addBtn}>
+          <Button
+            style={styles.addBtn}
+            onPress={() => {
+              handleAdd(Number(inputValue));
+              setInputValue('');
+              Keyboard.dismiss();
+            }}
+          >
             <Text>Sup</Text>
           </Button>
         </Animated.View>

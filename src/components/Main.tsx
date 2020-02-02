@@ -1,50 +1,51 @@
 import React from 'react';
 import { FlatList } from 'react-native';
-import { Container, Header, Title, Body } from 'native-base';
+import { Container, Spinner } from 'native-base';
+import * as listService from '../services/api';
 import Posts from './Posts';
 import Poster from './Poster';
 
+enum LoadingState {
+  Idle,
+  Loading,
+}
+
 const Main: React.FC = () => {
   const listRef = React.createRef<FlatList<number>>();
-  const [list, setList] = React.useState([
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-  ]);
+  const [list, setList] = React.useState([]);
+  const [loadingState, setLoadingState] = React.useState(LoadingState.Idle);
 
   React.useEffect(() => {
-    listRef.current.scrollToIndex({ index: 0 });
+    const getList = async () => {
+      setLoadingState(LoadingState.Loading);
+      const listData = await listService.fetchList();
+      setList(listData);
+      setLoadingState(LoadingState.Idle);
+    };
+    getList();
+  }, []);
+
+  React.useEffect(() => {
+    if (list.length && listRef.current) {
+      listRef.current.scrollToIndex({ index: 0 });
+    }
   }, [list]);
 
-  const handleAdd = () => {
-    setList([...list, list[list.length - 1] + 1]);
+  const handleAdd = async itemToAdd => {
+    const item = await listService.addItem(list[list.length - 1] + 1);
+    setList([...list, item]);
   };
 
   return (
     <Container>
-      <Posts list={list} innerRef={listRef} />
-      <Poster handleAdd={handleAdd} />
+      {loadingState === LoadingState.Loading ? (
+        <Spinner />
+      ) : (
+        <>
+          <Posts list={list} innerRef={listRef} />
+          <Poster handleAdd={handleAdd} />
+        </>
+      )}
     </Container>
   );
 };

@@ -1,16 +1,17 @@
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import { ListItem, Text } from 'native-base';
 import SwipeableRow from './SwipeableRow';
 
 interface Props {
-  list: Array<number>;
+  list: number[];
   innerRef: React.Ref<FlatList<number>>;
 }
 
 const Posts: React.FC<Props> = ({ list, innerRef }) => {
   return (
     <FlatList
+      style={styles.list}
       ref={innerRef}
       data={[...list].reverse()}
       renderItem={({ item }) => (
@@ -22,6 +23,7 @@ const Posts: React.FC<Props> = ({ list, innerRef }) => {
       )}
       keyExtractor={item => String(item)}
       inverted
+      initialNumToRender={16}
     />
   );
 };
@@ -29,3 +31,9 @@ const Posts: React.FC<Props> = ({ list, innerRef }) => {
 export default React.forwardRef<FlatList<number>, Props>((props, ref) => (
   <Posts innerRef={ref} {...props} />
 ));
+
+const styles = StyleSheet.create({
+  list: {
+    marginBottom: 80,
+  },
+});
