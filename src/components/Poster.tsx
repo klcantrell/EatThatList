@@ -15,7 +15,7 @@ const { Clock } = Animated;
 const INPUT_HIDDEN_OFFSET = -500;
 
 interface Props {
-  handleAdd: (item: number) => Promise<number>;
+  handleAdd: (item: number) => Promise<void>;
 }
 
 const Poster: React.FC<Props> = ({ handleAdd }) => {

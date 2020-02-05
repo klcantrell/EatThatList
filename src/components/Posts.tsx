@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, Alert } from 'react-native';
 import { ListItem, Text } from 'native-base';
 import SwipeableRow from './SwipeableRow';
 
@@ -15,7 +15,10 @@ const Posts: React.FC<Props> = ({ list, innerRef }) => {
       ref={innerRef}
       data={[...list].reverse()}
       renderItem={({ item }) => (
-        <SwipeableRow actionText="BYEEEE">
+        <SwipeableRow
+          actionText="BYEEEE"
+          handleRemove={() => Alert.alert('BYEEE')}
+        >
           <ListItem>
             <Text>{item}</Text>
           </ListItem>

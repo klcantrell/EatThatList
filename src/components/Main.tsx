@@ -1,6 +1,6 @@
 import React from 'react';
-import { FlatList } from 'react-native';
-import { Container, Spinner } from 'native-base';
+import { FlatList, StyleSheet } from 'react-native';
+import { Container, Content, Spinner } from 'native-base';
 import * as listService from '../services/api';
 import Posts from './Posts';
 import Poster from './Poster';
@@ -37,9 +37,9 @@ const Main: React.FC = () => {
   };
 
   return (
-    <Container>
+    <Container style={styles.container}>
       {loadingState === LoadingState.Loading ? (
-        <Spinner />
+        <Spinner color="pink" style={styles.spinner} />
       ) : (
         <>
           <Posts list={list} innerRef={listRef} />
@@ -51,3 +51,13 @@ const Main: React.FC = () => {
 };
 
 export default Main;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  spinner: {
+    marginBottom: 100,
+  },
+});
