@@ -1,40 +1,52 @@
 import React from 'react';
 import { Animated, StyleSheet, Dimensions } from 'react-native';
-import { Text, View } from 'native-base';
+import { Text } from 'native-base';
 import { RectButton } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 interface Props {
   actionText: string;
-  handleRemove: () => void;
+  handleRemove: (num: number) => void;
+  id: number;
+}
+
+enum Visibility {
+  Visible,
+  Removing,
+  Hidden,
 }
 
 const SwipeableRow: React.FC<Props> = ({
   children,
   actionText,
   handleRemove,
+  id,
 }) => {
-  const intervalId = React.useRef<number>();
-  const [isBeingRemoved, setIsBeingRemoved] = React.useState(false);
+  const [visibility, setVisibility] = React.useState(Visibility.Visible);
   const [countdown, setCountdown] = React.useState(3);
   const swipeableRow = React.useRef<Swipeable>();
+  const intervalId = React.useRef<number>();
+  const animatedY = React.useRef<Animated.Value>(new Animated.Value(1));
 
   React.useEffect(() => {
-    if (isBeingRemoved && countdown === 3) {
+    if (visibility === Visibility.Removing && countdown === 3) {
       intervalId.current = setInterval(() => {
         setCountdown(c => c - 1);
       }, 1000);
     }
     if (countdown === 0) {
       clearInterval(intervalId.current);
-      setIsBeingRemoved(false);
-      handleRemove();
+      setVisibility(Visibility.Hidden);
       setCountdown(3);
+      Animated.spring(animatedY.current, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start(() => handleRemove(id));
     }
-  }, [isBeingRemoved, countdown]);
+  }, [visibility, countdown]);
 
   const onSwipeLeft = () => {
-    setIsBeingRemoved(true);
+    setVisibility(Visibility.Removing);
   };
 
   const renderLeftActions = progress => {
@@ -43,16 +55,19 @@ const SwipeableRow: React.FC<Props> = ({
       outputRange: [-Dimensions.get('screen').width, 0],
     });
     return (
-      <View style={{ flex: 1 }}>
-        <Animated.View style={{ flex: 1, transform: [{ translateX: trans }] }}>
-          <RectButton style={styles.leftAction}>
-            {isBeingRemoved && (
-              <Text style={styles.countdownText}>{countdown}</Text>
-            )}
-            <Text style={styles.actionText}>{actionText}</Text>
-          </RectButton>
-        </Animated.View>
-      </View>
+      <Animated.View
+        style={{
+          flex: 1,
+          transform: [{ translateX: trans }, { scaleY: animatedY.current }],
+        }}
+      >
+        <RectButton style={styles.leftAction}>
+          {visibility === Visibility.Removing && (
+            <Text style={styles.countdownText}>{countdown}</Text>
+          )}
+          <Text style={styles.actionText}>{actionText}</Text>
+        </RectButton>
+      </Animated.View>
     );
   };
 
@@ -64,7 +79,9 @@ const SwipeableRow: React.FC<Props> = ({
       renderLeftActions={renderLeftActions}
       onSwipeableLeftOpen={onSwipeLeft}
     >
-      {children}
+      <Animated.View style={{ transform: [{ scaleY: animatedY.current }] }}>
+        {children}
+      </Animated.View>
     </Swipeable>
   );
 };

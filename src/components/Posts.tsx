@@ -6,19 +6,17 @@ import SwipeableRow from './SwipeableRow';
 interface Props {
   list: number[];
   innerRef: React.Ref<FlatList<number>>;
+  handleRemove: (num: number) => void;
 }
 
-const Posts: React.FC<Props> = ({ list, innerRef }) => {
+const Posts: React.FC<Props> = ({ list, innerRef, handleRemove }) => {
   return (
     <FlatList
       style={styles.list}
       ref={innerRef}
       data={[...list].reverse()}
       renderItem={({ item }) => (
-        <SwipeableRow
-          actionText="BYEEEE"
-          handleRemove={() => Alert.alert('BYEEE')}
-        >
+        <SwipeableRow actionText="BYEEEE" handleRemove={handleRemove} id={item}>
           <ListItem>
             <Text>{item}</Text>
           </ListItem>

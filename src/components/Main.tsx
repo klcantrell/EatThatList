@@ -36,13 +36,17 @@ const Main: React.FC = () => {
     setList([...list, item]);
   };
 
+  const handleRemove = async itemToRemove => {
+    setList(list.filter(item => item !== itemToRemove));
+  };
+
   return (
     <Container style={styles.container}>
       {loadingState === LoadingState.Loading ? (
         <Spinner color="pink" style={styles.spinner} />
       ) : (
         <>
-          <Posts list={list} innerRef={listRef} />
+          <Posts list={list} innerRef={listRef} handleRemove={handleRemove} />
           <Poster handleAdd={handleAdd} />
         </>
       )}
