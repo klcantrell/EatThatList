@@ -1,20 +1,22 @@
 import React from 'react';
-import { FlatList, StyleSheet, Alert } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import { ListItem, Text } from 'native-base';
 import SwipeableRow from './SwipeableRow';
 
 interface Props {
   list: number[];
-  innerRef: React.Ref<FlatList<number>>;
+  scrollToEnd: boolean;
   handleRemove: (num: number) => void;
 }
 
-const Posts: React.FC<Props> = ({ list, innerRef, handleRemove }) => {
+const Posts: React.FC<Props> = ({ list, scrollToEnd, handleRemove }) => {
+  const self = React.createRef<FlatList<number>>();
+
   return (
     <FlatList
       style={styles.list}
-      ref={innerRef}
-      data={[...list].reverse()}
+      ref={self}
+      data={list}
       renderItem={({ item }) => (
         <SwipeableRow actionText="BYEEEE" handleRemove={handleRemove} id={item}>
           <ListItem>
@@ -23,18 +25,20 @@ const Posts: React.FC<Props> = ({ list, innerRef, handleRemove }) => {
         </SwipeableRow>
       )}
       keyExtractor={item => String(item)}
-      inverted
       initialNumToRender={16}
+      onContentSizeChange={() => {
+        if (scrollToEnd) {
+          self.current.scrollToEnd();
+        }
+      }}
     />
   );
 };
-
-export default React.forwardRef<FlatList<number>, Props>((props, ref) => (
-  <Posts innerRef={ref} {...props} />
-));
 
 const styles = StyleSheet.create({
   list: {
     marginBottom: 80,
   },
 });
+
+export default Posts;

@@ -1,5 +1,10 @@
 import React from 'react';
-import { Animated, StyleSheet, Dimensions } from 'react-native';
+import {
+  Animated,
+  StyleSheet,
+  Dimensions,
+  LayoutAnimation,
+} from 'react-native';
 import { Text } from 'native-base';
 import { RectButton } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
@@ -38,10 +43,14 @@ const SwipeableRow: React.FC<Props> = ({
       clearInterval(intervalId.current);
       setVisibility(Visibility.Hidden);
       setCountdown(3);
+      setTimeout(() => {
+        handleRemove(id);
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+      }, 70);
       Animated.spring(animatedY.current, {
         toValue: 0,
         useNativeDriver: true,
-      }).start(() => handleRemove(id));
+      }).start();
     }
   }, [visibility, countdown]);
 

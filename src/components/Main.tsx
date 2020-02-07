@@ -1,9 +1,10 @@
 import React from 'react';
-import { FlatList, StyleSheet } from 'react-native';
-import { Container, Content, Spinner } from 'native-base';
+import { StyleSheet } from 'react-native';
+import { Container, Spinner } from 'native-base';
 import * as listService from '../services/api';
 import Posts from './Posts';
 import Poster from './Poster';
+import { usePrevious } from '../utils/hooks';
 
 enum LoadingState {
   Idle,
@@ -11,9 +12,10 @@ enum LoadingState {
 }
 
 const Main: React.FC = () => {
-  const listRef = React.createRef<FlatList<number>>();
   const [list, setList] = React.useState([]);
+  const previousListCount = usePrevious(list.length);
   const [loadingState, setLoadingState] = React.useState(LoadingState.Idle);
+  const [itemAdded, setItemAdded] = React.useState(false);
 
   React.useEffect(() => {
     const getList = async () => {
@@ -26,10 +28,12 @@ const Main: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
-    if (list.length && listRef.current) {
-      listRef.current.scrollToIndex({ index: 0 });
+    if (list.length > previousListCount) {
+      setItemAdded(true);
+    } else if (list.length < previousListCount) {
+      setItemAdded(false);
     }
-  }, [list]);
+  }, [list, previousListCount]);
 
   const handleAdd = async itemToAdd => {
     const item = await listService.addItem(list[list.length - 1] + 1);
@@ -46,7 +50,11 @@ const Main: React.FC = () => {
         <Spinner color="pink" style={styles.spinner} />
       ) : (
         <>
-          <Posts list={list} innerRef={listRef} handleRemove={handleRemove} />
+          <Posts
+            list={list}
+            scrollToEnd={itemAdded}
+            handleRemove={handleRemove}
+          />
           <Poster handleAdd={handleAdd} />
         </>
       )}
