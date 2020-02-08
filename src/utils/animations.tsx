@@ -12,6 +12,7 @@ const {
 } = Animated;
 
 const runTiming = (
+  duration: number,
   clock: Animated.Clock,
   value: number,
   dest: number,
@@ -25,7 +26,7 @@ const runTiming = (
   };
 
   const config = {
-    duration: 300,
+    duration,
     toValue: new Value(0),
     easing,
   };

@@ -30,7 +30,7 @@ const SwipeableRow: React.FC<Props> = ({
   const [visibility, setVisibility] = React.useState(Visibility.Visible);
   const [countdown, setCountdown] = React.useState(3);
   const swipeableRow = React.useRef<Swipeable>();
-  const intervalId = React.useRef<number>();
+  const intervalId = React.useRef<NodeJS.Timeout>();
   const animatedY = React.useRef<Animated.Value>(new Animated.Value(1));
 
   React.useEffect(() => {

@@ -35,12 +35,14 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
   }, [inputVisible]);
 
   const transX: Animated.Node<number> = runTiming(
+    300,
     new Clock(),
     INPUT_HIDDEN_OFFSET,
     0,
     Easing.inOut(Easing.ease)
   );
   const transY: Animated.Node<number> = runTiming(
+    100,
     new Clock(),
     0,
     -INPUT_HIDDEN_OFFSET,
@@ -88,15 +90,12 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
               style={styles.textInput}
               onChangeText={text => setInputValue(text)}
               placeholder="Todo"
-              returnKeyType="send"
               keyboardAppearance="dark"
               onBlur={toggleInput}
               value={inputValue}
               ref={textInput}
               onSubmitEditing={() => {
-                handleAdd(Number(inputValue));
                 setInputValue('');
-                Keyboard.dismiss();
               }}
             />
           </Item>

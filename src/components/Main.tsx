@@ -28,7 +28,7 @@ const Main: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
-    if (list.length > previousListCount) {
+    if (list.length > previousListCount && previousListCount > 0) {
       setItemAdded(true);
     } else if (list.length < previousListCount) {
       setItemAdded(false);
