@@ -4,6 +4,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { View, Button, Text, Input, Item } from 'native-base';
 import {
@@ -18,8 +19,32 @@ interface Props {
 }
 
 const Login: React.FC<Props> = ({ navigation }) => {
+  const usernameInput = React.useRef(null);
+  const passwordInput = React.useRef(null);
   const [username, setUsername] = React.useState<string>('');
   const [password, setPassword] = React.useState<string>('');
+  const [creatingAccount, setCreatingAccount] = React.useState<boolean>(false);
+
+  const reset = () => {
+    if (usernameInput.current && usernameInput.current._root) {
+      usernameInput.current._root.blur();
+    }
+    if (passwordInput.current && passwordInput.current._root) {
+      passwordInput.current._root.blur();
+    }
+    setCreatingAccount(false);
+    setUsername('');
+    setPassword('');
+  };
+
+  React.useEffect(() => {
+    return firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        reset();
+        Alert.alert('You are signed in!');
+      }
+    });
+  }, []);
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -28,18 +53,22 @@ const Login: React.FC<Props> = ({ navigation }) => {
           <Item style={styles.loginInput}>
             <Input
               placeholder="username"
+              value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
               autoCompleteType="off"
+              ref={usernameInput}
             />
           </Item>
           <Item style={styles.loginInput}>
             <Input
               placeholder="password"
+              value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoCapitalize="none"
               autoCompleteType="off"
+              ref={passwordInput}
             />
           </Item>
           <View style={styles.loginActions}>
@@ -63,17 +92,21 @@ const Login: React.FC<Props> = ({ navigation }) => {
               rounded
               style={[styles.loginActionsButton, styles.createAccountButton]}
               onPress={() => {
+                setCreatingAccount(true);
                 firebase
                   .auth()
                   .createUserWithEmailAndPassword(username, password)
-                  .then(() => {
-                    setUsername('');
-                    setPassword('');
-                  })
-                  .catch(err => Alert.alert(JSON.stringify(err, null, 2)));
+                  .catch(err => {
+                    reset();
+                    Alert.alert(JSON.stringify(err, null, 2));
+                  });
               }}
             >
-              <Text>Create an account</Text>
+              {creatingAccount ? (
+                <ActivityIndicator />
+              ) : (
+                <Text>Create an account</Text>
+              )}
             </Button>
           </View>
         </View>
@@ -110,9 +143,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   signInButton: {
-    width: 100,
+    minWidth: 100,
   },
   createAccountButton: {
     backgroundColor: 'deeppink',
+    minWidth: 170,
   },
 });
