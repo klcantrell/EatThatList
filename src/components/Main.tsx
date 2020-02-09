@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Alert } from 'react-native';
 import {
   Container,
   Spinner,
@@ -9,8 +9,15 @@ import {
   Right,
   Left,
   Button,
+  View,
   Text,
 } from 'native-base';
+import {
+  StackActions,
+  NavigationActions,
+  NavigationScreenProp,
+} from 'react-navigation';
+import firebase from 'firebase/app';
 import * as listService from '../services/api';
 import Posts from './Posts';
 import Poster from './Poster';
@@ -21,7 +28,11 @@ enum LoadingState {
   Loading,
 }
 
-const Main: React.FC = () => {
+interface Props {
+  navigation: NavigationScreenProp<{}>;
+}
+
+const Main: React.FC<Props> = ({ navigation }) => {
   const [list, setList] = React.useState([]);
   const previousListCount = usePrevious(list.length);
   const [loadingState, setLoadingState] = React.useState(LoadingState.Idle);
@@ -57,6 +68,23 @@ const Main: React.FC = () => {
     });
   };
 
+  const handleSignOut = async () => {
+    await firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        navigation.dispatch(
+          StackActions.reset({
+            index: 0,
+            actions: [NavigationActions.navigate({ routeName: 'Login' })],
+          })
+        );
+      })
+      .catch(() => {
+        Alert.alert('Something went wrong signing you out. Please try again');
+      });
+  };
+
   return (
     <Container style={styles.container}>
       <Header>
@@ -65,29 +93,35 @@ const Main: React.FC = () => {
           <Title>List</Title>
         </Body>
         <Right>
-          <Button transparent>
+          <Button transparent onPress={handleSignOut}>
             <Text>Logout</Text>
           </Button>
         </Right>
       </Header>
-      {loadingState === LoadingState.Loading ? (
-        <Spinner color="pink" style={styles.spinner} />
-      ) : (
-        <>
-          <Posts
-            list={list}
-            scrollToEnd={itemAdded}
-            handleRemove={handleRemove}
-          />
-          <Poster handleAdd={handleAdd} />
-        </>
-      )}
+      <View style={styles.body}>
+        {loadingState === LoadingState.Loading ? (
+          <Spinner color="pink" style={styles.spinner} />
+        ) : (
+          <>
+            <Posts
+              list={list}
+              scrollToEnd={itemAdded}
+              handleRemove={handleRemove}
+            />
+            <Poster handleAdd={handleAdd} />
+          </>
+        )}
+      </View>
     </Container>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  body: {
     flex: 1,
     justifyContent: 'center',
   },

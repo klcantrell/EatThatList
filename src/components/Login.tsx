@@ -5,6 +5,7 @@ import {
   TouchableWithoutFeedback,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { View, Button, Text, Input, Item, Spinner } from 'native-base';
 import {
@@ -58,6 +59,7 @@ const Login: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       {authNeeded ? (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.content}>
