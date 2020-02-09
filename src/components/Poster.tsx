@@ -57,7 +57,6 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
         style={styles.keyboardView}
         behavior="position"
         pointerEvents="box-none"
-        keyboardVerticalOffset={70}
       >
         <Animated.View
           style={
@@ -119,6 +118,13 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+  },
   fabBtn: {
     backgroundColor: 'red',
     width: 50,
@@ -136,10 +142,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   form: {
-    position: 'relative',
-    bottom: 20,
     transform: [{ translateX: INPUT_HIDDEN_OFFSET }],
-    marginHorizontal: 1,
+    margin: 1,
     backgroundColor: '#dbdbdb',
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -159,13 +163,6 @@ const styles = StyleSheet.create({
     height: '90%',
     borderRadius: 8,
     margin: 2,
-  },
-  container: {
-    position: 'absolute',
-    height: '100%',
-    width: '100%',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
   },
 });
 

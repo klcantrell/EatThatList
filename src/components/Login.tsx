@@ -6,7 +6,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { View, Button, Text, Input, Item } from 'native-base';
+import { View, Button, Text, Input, Item, Spinner } from 'native-base';
 import {
   StackActions,
   NavigationScreenProp,
@@ -19,11 +19,13 @@ interface Props {
 }
 
 const Login: React.FC<Props> = ({ navigation }) => {
-  const usernameInput = React.useRef(null);
-  const passwordInput = React.useRef(null);
+  const [authNeeded, setAuthNeeded] = React.useState<boolean>(false);
+  const [creatingAccount, setCreatingAccount] = React.useState<boolean>(false);
+  const [loggingIn, setLoggingIn] = React.useState<boolean>(false);
   const [username, setUsername] = React.useState<string>('');
   const [password, setPassword] = React.useState<string>('');
-  const [creatingAccount, setCreatingAccount] = React.useState<boolean>(false);
+  const usernameInput = React.useRef(null);
+  const passwordInput = React.useRef(null);
 
   const reset = () => {
     if (usernameInput.current && usernameInput.current._root) {
@@ -33,6 +35,7 @@ const Login: React.FC<Props> = ({ navigation }) => {
       passwordInput.current._root.blur();
     }
     setCreatingAccount(false);
+    setLoggingIn(false);
     setUsername('');
     setPassword('');
   };
@@ -41,77 +44,88 @@ const Login: React.FC<Props> = ({ navigation }) => {
     return firebase.auth().onAuthStateChanged(user => {
       if (user) {
         reset();
-        Alert.alert('You are signed in!');
+        navigation.dispatch(
+          StackActions.reset({
+            index: 0,
+            actions: [NavigationActions.navigate({ routeName: 'Main' })],
+          })
+        );
+      } else {
+        setAuthNeeded(true);
       }
     });
   }, []);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <Item style={styles.loginInput}>
-            <Input
-              placeholder="username"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCompleteType="off"
-              ref={usernameInput}
-            />
-          </Item>
-          <Item style={styles.loginInput}>
-            <Input
-              placeholder="password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCompleteType="off"
-              ref={passwordInput}
-            />
-          </Item>
-          <View style={styles.loginActions}>
-            <Button
-              rounded
-              style={[styles.loginActionsButton, styles.signInButton]}
-              onPress={() => {
-                // navigation.dispatch(
-                //   StackActions.reset({
-                //     index: 0,
-                //     actions: [
-                //       NavigationActions.navigate({ routeName: 'Main' }),
-                //     ],
-                //   })
-                // );
-              }}
-            >
-              <Text>Sign in</Text>
-            </Button>
-            <Button
-              rounded
-              style={[styles.loginActionsButton, styles.createAccountButton]}
-              onPress={() => {
-                setCreatingAccount(true);
-                firebase
-                  .auth()
-                  .createUserWithEmailAndPassword(username, password)
-                  .catch(err => {
-                    reset();
-                    Alert.alert(JSON.stringify(err, null, 2));
-                  });
-              }}
-            >
-              {creatingAccount ? (
-                <ActivityIndicator />
-              ) : (
-                <Text>Create an account</Text>
-              )}
-            </Button>
+    <View style={styles.container}>
+      {authNeeded ? (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.content}>
+            <Item style={styles.loginInput}>
+              <Input
+                placeholder="email"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCompleteType="off"
+                ref={usernameInput}
+              />
+            </Item>
+            <Item style={styles.loginInput}>
+              <Input
+                placeholder="password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCompleteType="off"
+                ref={passwordInput}
+              />
+            </Item>
+            <View style={styles.loginActions}>
+              <Button
+                rounded
+                style={[styles.loginActionsButton, styles.signInButton]}
+                onPress={() => {
+                  setLoggingIn(true);
+                  firebase
+                    .auth()
+                    .signInWithEmailAndPassword(username, password)
+                    .catch(err => {
+                      reset();
+                      Alert.alert(JSON.stringify(err, null, 2));
+                    });
+                }}
+              >
+                {loggingIn ? <ActivityIndicator /> : <Text>Sign in</Text>}
+              </Button>
+              <Button
+                rounded
+                style={[styles.loginActionsButton, styles.createAccountButton]}
+                onPress={() => {
+                  setCreatingAccount(true);
+                  firebase
+                    .auth()
+                    .createUserWithEmailAndPassword(username, password)
+                    .catch(err => {
+                      reset();
+                      Alert.alert(JSON.stringify(err, null, 2));
+                    });
+                }}
+              >
+                {creatingAccount ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text>Create an account</Text>
+                )}
+              </Button>
+            </View>
           </View>
-        </View>
-      </View>
-    </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      ) : (
+        <Spinner color="pink" style={styles.spinner} />
+      )}
+    </View>
   );
 };
 
@@ -148,5 +162,8 @@ const styles = StyleSheet.create({
   createAccountButton: {
     backgroundColor: 'deeppink',
     minWidth: 170,
+  },
+  spinner: {
+    marginTop: 50,
   },
 });

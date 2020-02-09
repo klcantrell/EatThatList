@@ -25,9 +25,11 @@ firebase.initializeApp(firebaseConfig);
 const AppNavigator = createStackNavigator({
   Login: {
     screen: Login,
+    navigationOptions: () => ({ headerShown: false }),
   },
   Main: {
     screen: Main,
+    navigationOptions: () => ({ headerShown: false }),
   },
 });
 

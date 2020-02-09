@@ -1,6 +1,16 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Container, Spinner } from 'native-base';
+import {
+  Container,
+  Spinner,
+  Header,
+  Title,
+  Body,
+  Right,
+  Left,
+  Button,
+  Text,
+} from 'native-base';
 import * as listService from '../services/api';
 import Posts from './Posts';
 import Poster from './Poster';
@@ -35,17 +45,31 @@ const Main: React.FC = () => {
     }
   }, [list, previousListCount]);
 
-  const handleAdd = async itemToAdd => {
+  const handleAdd = async (itemToAdd: number) => {
     const item = await listService.addItem(list[list.length - 1] + 1);
     setList([...list, item]);
   };
 
-  const handleRemove = async itemToRemove => {
+  const handleRemove = async (itemToRemove: number) => {
     setList(list.filter(item => item !== itemToRemove));
+    await listService.deleteItem(itemToRemove).catch(() => {
+      setList(list);
+    });
   };
 
   return (
     <Container style={styles.container}>
+      <Header>
+        <Left />
+        <Body>
+          <Title>List</Title>
+        </Body>
+        <Right>
+          <Button transparent>
+            <Text>Logout</Text>
+          </Button>
+        </Right>
+      </Header>
       {loadingState === LoadingState.Loading ? (
         <Spinner color="pink" style={styles.spinner} />
       ) : (
@@ -62,8 +86,6 @@ const Main: React.FC = () => {
   );
 };
 
-export default Main;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -72,4 +94,12 @@ const styles = StyleSheet.create({
   spinner: {
     marginBottom: 100,
   },
+  button: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    transform: [{ translateY: -10 }],
+  },
 });
+
+export default Main;

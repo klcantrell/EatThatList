@@ -1,18 +1,31 @@
 import data from './data.json';
 
-let listData: number[] = data;
+let listData: number[] = Array.from(data);
 
 const fetchList = () => {
   return new Promise<number[]>(resolve => {
     setTimeout(() => {
-      resolve(data);
-    }, 3000);
+      resolve(listData);
+    }, 200);
   });
 };
 
 const addItem = (item: number) => {
   listData = [...data, item];
-  return Promise.resolve<number>(item);
+  return new Promise<number>(resolve => {
+    setTimeout(() => {
+      resolve(item);
+    }, 100);
+  });
 };
 
-export { fetchList, addItem };
+const deleteItem = (itemToRemove: number) => {
+  listData = data.filter(item => item !== itemToRemove);
+  return new Promise<number>(resolve => {
+    setTimeout(() => {
+      resolve(itemToRemove);
+    }, 100);
+  });
+};
+
+export { fetchList, addItem, deleteItem };
