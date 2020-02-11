@@ -11,7 +11,7 @@ const fetchList = () => {
 };
 
 const addItem = (item: number) => {
-  listData = [...data, item];
+  listData = [...listData, item];
   return new Promise<number>(resolve => {
     setTimeout(() => {
       resolve(item);
@@ -20,7 +20,7 @@ const addItem = (item: number) => {
 };
 
 const deleteItem = (itemToRemove: number) => {
-  listData = data.filter(item => item !== itemToRemove);
+  listData = listData.filter(item => item !== itemToRemove);
   return new Promise<number>(resolve => {
     setTimeout(() => {
       resolve(itemToRemove);
@@ -28,4 +28,4 @@ const deleteItem = (itemToRemove: number) => {
   });
 };
 
-export { fetchList, addItem, deleteItem };
+export default { fetchList, addItem, deleteItem };

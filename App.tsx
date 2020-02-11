@@ -1,14 +1,15 @@
 import React from 'react';
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
+import firebase from 'firebase/app';
+import 'firebase/auth';
 import { AppLoading } from 'expo';
 import { loadAsync as loadFontAsync } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import Main from './src/components/Main';
 import Login from './src/components/Login';
-
-import firebase from 'firebase/app';
-import 'firebase/auth';
+import SelectedList from './src/components/SelectedList';
+import AvailableLists from './src/components/AvailableLists';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAPkyMJpeZhgil9LCtTBoz7JMOimpF2764',
@@ -29,6 +30,14 @@ const AppNavigator = createStackNavigator({
   },
   Main: {
     screen: Main,
+    navigationOptions: () => ({ headerShown: false }),
+  },
+  AvailableLists: {
+    screen: AvailableLists,
+    navigationOptions: () => ({ headerShown: false }),
+  },
+  SelectedList: {
+    screen: SelectedList,
     navigationOptions: () => ({ headerShown: false }),
   },
 });

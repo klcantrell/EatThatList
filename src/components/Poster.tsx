@@ -7,8 +7,8 @@ import {
 } from 'react-native';
 import { View, Button, Icon, Text, Item, Input } from 'native-base';
 import Animated, { Easing } from 'react-native-reanimated';
-import { runTiming } from '../utils/animations';
-import { usePrevious } from '../utils/hooks';
+import { runTiming } from '../common/animations';
+import { usePrevious } from '../common/hooks';
 
 const { Clock } = Animated;
 
@@ -57,6 +57,7 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
         style={styles.keyboardView}
         behavior="position"
         pointerEvents="box-none"
+        keyboardVerticalOffset={87}
       >
         <Animated.View
           style={
