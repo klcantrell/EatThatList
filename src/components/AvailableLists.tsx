@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import {
   View,
   Text,
@@ -12,14 +12,29 @@ import {
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
+import { useQuery } from '@apollo/react-hooks';
+import gql from 'graphql-tag';
+import Fab from './Fab';
+import KeyboardInput from './KeyboardInput';
+import ListCard from './ListCard';
 import { AppActionsContext } from '../common/context';
 
 interface Props {
   navigation: NavigationStackProp;
 }
 
+const GET_LISTS = gql`
+  query($userId: String!) {
+    Lists(where: { _or: [{ owner: { _eq: $userId } }] }) {
+      name
+    }
+  }
+`;
+
 const AvailableLists: React.FC<Props> = ({ navigation }) => {
   const { handleSignout } = React.useContext(AppActionsContext);
+  const [showKeyboard, setShowKeyboard] = React.useState<boolean>(false);
+  const [inputValue, setInputValue] = React.useState('');
 
   const onSignout = () => {
     navigation.dispatch(
@@ -29,6 +44,14 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       })
     );
   };
+  const toggleShowDialog = () => setShowKeyboard(!showKeyboard);
+
+  const { loading, data, error } = useQuery(GET_LISTS, {
+    variables: {
+      userId: '',
+    },
+    fetchPolicy: 'no-cache',
+  });
 
   return (
     <>
@@ -43,17 +66,37 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
           </Button>
         </Right>
       </Header>
-      <View style={styles.container}>
-        <Text>Hello!</Text>
-        <Button
-          rounded
-          onPress={() => {
-            navigation.push('SelectedList');
-          }}
-        >
-          <Text>Go to list</Text>
-        </Button>
-      </View>
+      <TouchableWithoutFeedback
+        onPress={() => {
+          setShowKeyboard(false);
+          Keyboard.dismiss();
+        }}
+      >
+        <View style={styles.container}>
+          <View style={styles.cardContainer}>
+            {error ? (
+              <Text>{error.message}</Text>
+            ) : loading ? (
+              <Text>Loading...</Text>
+            ) : (
+              data.Lists.map(list => <ListCard name={list.name} />)
+            )}
+          </View>
+          <KeyboardInput
+            placeholder="List"
+            value={inputValue}
+            visible={showKeyboard}
+            onChange={setInputValue}
+            onBlur={() => setInputValue('')}
+          />
+          <Fab
+            color="red"
+            icon="add"
+            onPress={toggleShowDialog}
+            style={styles.fabBtn}
+          />
+        </View>
+      </TouchableWithoutFeedback>
     </>
   );
 };
@@ -61,8 +104,21 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 200,
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  cardContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    width: '100%',
+  },
+  dialog: {
+    position: 'absolute',
+  },
+  fabBtn: {
+    position: 'absolute',
+    bottom: 50,
+    right: 50,
   },
 });
 

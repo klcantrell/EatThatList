@@ -10,6 +10,7 @@ import {
   Button,
   View,
   Text,
+  Icon,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -80,7 +81,8 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
       <Header>
         <Left>
           <Button transparent onPress={() => navigation.goBack()}>
-            <Text>{'Your lists'}</Text>
+            <Icon name="arrow-back" style={styles.arrowBack} />
+            <Text>Your lists</Text>
           </Button>
         </Left>
         <Body>
@@ -123,6 +125,9 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     transform: [{ translateY: -10 }],
+  },
+  arrowBack: {
+    marginRight: 5,
   },
 });
 

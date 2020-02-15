@@ -1,51 +1,19 @@
 import React from 'react';
-import { createAppContainer } from 'react-navigation';
-import { createStackNavigator } from 'react-navigation-stack';
-import firebase from 'firebase/app';
-import 'firebase/auth';
+import { AsyncStorage } from 'react-native';
+import { ApolloProvider } from '@apollo/react-hooks';
 import { AppLoading } from 'expo';
 import { loadAsync as loadFontAsync } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import Main from './src/components/Main';
-import Login from './src/components/Login';
-import SelectedList from './src/components/SelectedList';
-import AvailableLists from './src/components/AvailableLists';
+import { setupFirebase } from './src/firebase';
+import firebase from 'firebase/app';
+import { createGraphqlClient } from './src/apollo';
+import NavContainer from './src/NavContainer';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyAPkyMJpeZhgil9LCtTBoz7JMOimpF2764',
-  authDomain: 'eatthatlist.firebaseapp.com',
-  databaseURL: 'https://eatthatlist.firebaseio.com',
-  projectId: 'eatthatlist',
-  storageBucket: 'eatthatlist.appspot.com',
-  messagingSenderId: '927915290820',
-  appId: '1:927915290820:web:5d41e7c65597efe80ad991',
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const AppNavigator = createStackNavigator({
-  Login: {
-    screen: Login,
-    navigationOptions: () => ({ headerShown: false }),
-  },
-  Main: {
-    screen: Main,
-    navigationOptions: () => ({ headerShown: false }),
-  },
-  AvailableLists: {
-    screen: AvailableLists,
-    navigationOptions: () => ({ headerShown: false }),
-  },
-  SelectedList: {
-    screen: SelectedList,
-    navigationOptions: () => ({ headerShown: false }),
-  },
-});
-
-const AppContainer = createAppContainer(AppNavigator);
+setupFirebase();
 
 const App: React.FC = () => {
-  const [fontsLoaded, setFontsLoaded] = React.useState(false);
+  const [fontsLoaded, setFontsLoaded] = React.useState<boolean>(false);
+  const [client, setClient] = React.useState(null);
 
   React.useEffect(() => {
     const loadFonts = async () => {
@@ -57,13 +25,21 @@ const App: React.FC = () => {
     };
     loadFonts();
     setFontsLoaded(true);
+    return firebase.auth().onAuthStateChanged(async user => {
+      const token = await user.getIdToken();
+      setClient(createGraphqlClient(token));
+    });
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !client) {
     return <AppLoading />;
   }
 
-  return <AppContainer />;
+  return (
+    <ApolloProvider client={client}>
+      <NavContainer />
+    </ApolloProvider>
+  );
 };
 
 export default App;
