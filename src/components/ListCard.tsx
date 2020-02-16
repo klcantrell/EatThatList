@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Text } from 'native-base';
-import { StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 interface Props {
   name: string;

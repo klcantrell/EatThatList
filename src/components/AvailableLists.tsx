@@ -1,5 +1,10 @@
 import React from 'react';
-import { StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import {
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert,
+} from 'react-native';
 import {
   View,
   Text,
@@ -62,6 +67,50 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     addList,
     { data: addListData, loading: addListLoading, error: addListError },
   ] = useMutation(ADD_LIST);
+  const onAddList = () => {
+    addList({
+      variables: {
+        name: inputValue,
+        userId: auth.userId,
+      },
+      optimisticResponse: {
+        __typename: 'mutation_root',
+        insert_Lists: {
+          __typename: 'Lists_mutation_response',
+          returning: [
+            {
+              __typename: 'Lists',
+              owner: auth.userId,
+              name: inputValue,
+              id: Math.random() * -10000 + Number(auth.userId),
+            },
+          ],
+        },
+      },
+      update: (
+        proxy,
+        {
+          data: {
+            insert_Lists: { returning },
+          },
+        }
+      ) => {
+        const { Lists } = proxy.readQuery({
+          query: GET_LISTS,
+          variables: {
+            userId: auth.userId,
+          },
+        });
+        proxy.writeQuery({
+          query: GET_LISTS,
+          variables: {
+            userId: auth.userId,
+          },
+          data: { Lists: [...Lists, ...returning] },
+        });
+      },
+    });
+  };
 
   const onSignout = () => {
     navigation.dispatch(
@@ -85,6 +134,14 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     });
   };
 
+  if (getListError) {
+    Alert.alert('Something went wrong, please try again');
+  }
+
+  if (addListError) {
+    Alert.alert('Could not add item, please try again');
+  }
+
   return (
     <>
       <Header>
@@ -106,9 +163,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.container}>
           <View style={styles.cardContainer}>
-            {getListError ? (
-              <Text>{getListError.message}</Text>
-            ) : getListLoading ? (
+            {getListLoading ? (
               <Text>Loading...</Text>
             ) : (
               getListData.Lists.map(list => (
@@ -125,50 +180,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
             value={inputValue}
             visible={showKeyboard}
             onChange={setInputValue}
-            onAdd={() =>
-              addList({
-                variables: {
-                  name: inputValue,
-                  userId: auth.userId,
-                },
-                optimisticResponse: {
-                  __typename: 'mutation_root',
-                  insert_Lists: {
-                    __typename: 'Lists_mutation_response',
-                    returning: [
-                      {
-                        __typename: 'Lists',
-                        owner: auth.userId,
-                        name: inputValue,
-                        id: null,
-                      },
-                    ],
-                  },
-                },
-                update: (
-                  proxy,
-                  {
-                    data: {
-                      insert_Lists: { returning },
-                    },
-                  }
-                ) => {
-                  const { Lists } = proxy.readQuery({
-                    query: GET_LISTS,
-                    variables: {
-                      userId: auth.userId,
-                    },
-                  });
-                  proxy.writeQuery({
-                    query: GET_LISTS,
-                    variables: {
-                      userId: auth.userId,
-                    },
-                    data: { Lists: [...Lists, ...returning] },
-                  });
-                },
-              })
-            }
+            onAdd={onAddList}
             onReturn={hideKeyboardAndClear}
             onBlur={hideKeyboardAndClear}
           />

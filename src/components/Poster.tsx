@@ -5,7 +5,7 @@ import Fab from './Fab';
 import KeyboardInput from './KeyboardInput';
 
 interface Props {
-  handleAdd: (item: number) => Promise<void>;
+  handleAdd: (item: string) => void;
 }
 
 const Poster: React.FC<Props> = ({ handleAdd }) => {
@@ -23,7 +23,7 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
         onChange={setInputValue}
         onBlur={toggleInput}
         onAdd={() => {
-          handleAdd(Number(inputValue));
+          handleAdd(inputValue);
           setInputValue('');
         }}
         onReturn={() => setInputValue('')}

@@ -3,14 +3,19 @@ import { FlatList, StyleSheet } from 'react-native';
 import { ListItem, Text } from 'native-base';
 import SwipeableRow from './SwipeableRow';
 
+type Item = {
+  id: number;
+  description: string;
+};
+
 interface Props {
-  list: number[];
+  list: Item[];
   scrollToEnd: boolean;
   handleRemove: (num: number) => void;
 }
 
 const Posts: React.FC<Props> = ({ list, scrollToEnd, handleRemove }) => {
-  const self = React.createRef<FlatList<number>>();
+  const self = React.createRef<FlatList<Item>>();
 
   return (
     <FlatList
@@ -18,13 +23,17 @@ const Posts: React.FC<Props> = ({ list, scrollToEnd, handleRemove }) => {
       ref={self}
       data={list}
       renderItem={({ item }) => (
-        <SwipeableRow actionText="BYEEEE" handleRemove={handleRemove} id={item}>
+        <SwipeableRow
+          actionText="BYEEEE"
+          handleRemove={() => handleRemove(item.id)}
+          id={item.id}
+        >
           <ListItem>
-            <Text>{item}</Text>
+            <Text>{item.description}</Text>
           </ListItem>
         </SwipeableRow>
       )}
-      keyExtractor={item => String(item)}
+      keyExtractor={item => String(item.id)}
       initialNumToRender={16}
       onContentSizeChange={() => {
         if (scrollToEnd) {

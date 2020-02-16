@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Alert } from 'react-native';
 import {
   Spinner,
   Header,
@@ -14,45 +14,170 @@ import {
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
-import listService from '../services/api';
+import { useQuery, useMutation } from '@apollo/react-hooks';
+import gql from 'graphql-tag';
+import { AuthContext } from '../common/context';
 import Posts from './Posts';
 import Poster from './Poster';
-import { usePrevious } from '../common/hooks';
 import { AppActionsContext } from '../common/context';
-
-enum LoadingState {
-  Idle,
-  Loading,
-}
 
 interface Props {
   navigation: NavigationStackProp;
 }
 
-const SelectedList: React.FC<Props> = ({ navigation }) => {
-  const { handleSignout } = React.useContext(AppActionsContext);
-  const [list, setList] = React.useState([]);
-  const previousListCount = usePrevious(list.length);
-  const [loadingState, setLoadingState] = React.useState(LoadingState.Idle);
-  const [itemAdded, setItemAdded] = React.useState(false);
-
-  React.useEffect(() => {
-    const getList = async () => {
-      setLoadingState(LoadingState.Loading);
-      const listData = await listService.fetchList();
-      setList(listData);
-      setLoadingState(LoadingState.Idle);
-    };
-    getList();
-  }, []);
-
-  React.useEffect(() => {
-    if (list.length > previousListCount && previousListCount > 0) {
-      setItemAdded(true);
-    } else if (list.length < previousListCount) {
-      setItemAdded(false);
+const GET_LIST_ITEMS = gql`
+  query($listId: Int!) {
+    ListItems(where: { List: { id: { _eq: $listId } } }) {
+      id
+      description
     }
-  }, [list, previousListCount]);
+  }
+`;
+
+const ADD_LIST_ITEM = gql`
+  mutation($listId: Int!, $description: String!, $creator: String!) {
+    insert_ListItems(
+      objects: [
+        { list_id: $listId, description: $description, creator: $creator }
+      ]
+    ) {
+      returning {
+        id
+        description
+      }
+    }
+  }
+`;
+
+const DELETE_LIST_ITEM = gql`
+  mutation($listItemId: Int!) {
+    delete_ListItems(where: { id: { _eq: $listItemId } }) {
+      returning {
+        id
+      }
+    }
+  }
+`;
+
+const SelectedList: React.FC<Props> = ({ navigation }) => {
+  const auth = React.useContext(AuthContext);
+  const [itemAdded, setItemAdded] = React.useState<boolean>(false);
+  const listId = navigation.getParam('listId');
+
+  const { handleSignout } = React.useContext(AppActionsContext);
+  const {
+    error: getListItemsError,
+    loading: getListItemsLoading,
+    data: getListItemsData,
+  } = useQuery(GET_LIST_ITEMS, {
+    variables: { listId },
+  });
+  const [
+    addListItem,
+    {
+      data: addListItemData,
+      loading: addListItemLoading,
+      error: addListItemError,
+    },
+  ] = useMutation(ADD_LIST_ITEM);
+  const [
+    deleteListItem,
+    {
+      data: deleteListItemData,
+      loading: deleteListItemLoading,
+      error: deleteListItemError,
+    },
+  ] = useMutation(DELETE_LIST_ITEM);
+
+  const onAddListItem = (itemDescription: string) => {
+    addListItem({
+      variables: {
+        listId,
+        description: itemDescription,
+        creator: auth.userId,
+      },
+      optimisticResponse: {
+        __typename: 'mutation_root',
+        insert_ListItems: {
+          __typename: 'ListItems_mutation_response',
+          returning: [
+            {
+              __typename: 'ListItems',
+              id: Math.random() * -10000 + Number(auth.userId),
+              description: itemDescription,
+            },
+          ],
+        },
+      },
+      update: (
+        proxy,
+        {
+          data: {
+            insert_ListItems: { returning },
+          },
+        }
+      ) => {
+        const { ListItems } = proxy.readQuery({
+          query: GET_LIST_ITEMS,
+          variables: { listId },
+        });
+        proxy.writeQuery({
+          query: GET_LIST_ITEMS,
+          variables: {
+            listId,
+          },
+          data: { ListItems: [...ListItems, ...returning] },
+        });
+      },
+    });
+    setItemAdded(true);
+  };
+
+  const onDeleteListItem = (itemId: number) => {
+    setItemAdded(false);
+    deleteListItem({
+      variables: {
+        listItemId: itemId,
+      },
+      optimisticResponse: {
+        __typename: 'mutation_root',
+        delete_ListItems: {
+          __typename: 'ListItems_mutation_response',
+          returning: [
+            {
+              __typename: 'ListItems',
+              id: itemId,
+            },
+          ],
+        },
+      },
+      update: (
+        proxy,
+        {
+          data: {
+            delete_ListItems: { returning },
+          },
+        }
+      ) => {
+        const returnedIds = returning.map(returned => returned.id);
+        const { ListItems } = proxy.readQuery({
+          query: GET_LIST_ITEMS,
+          variables: { listId },
+        });
+        proxy.writeQuery({
+          query: GET_LIST_ITEMS,
+          variables: {
+            listId,
+          },
+          data: {
+            ListItems: ListItems.filter(
+              listItem => !returnedIds.includes(listItem.id)
+            ),
+          },
+        });
+      },
+    });
+  };
 
   const onSignout = () => {
     navigation.dispatch(
@@ -63,18 +188,13 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  const handleAdd = async (itemToAdd: number) => {
-    const nextItem = list.length ? list[list.length - 1] + 1 : 1;
-    const item = await listService.addItem(nextItem);
-    setList([...list, item]);
-  };
+  if (getListItemsError) {
+    Alert.alert('Something went wrong, please try again');
+  }
 
-  const handleRemove = async (itemToRemove: number) => {
-    setList(list.filter(item => item !== itemToRemove));
-    await listService.deleteItem(itemToRemove).catch(() => {
-      setList(list);
-    });
-  };
+  if (addListItemError) {
+    Alert.alert('Could not add item, please try again');
+  }
 
   return (
     <>
@@ -95,16 +215,16 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
         </Right>
       </Header>
       <View style={styles.body}>
-        {loadingState === LoadingState.Loading ? (
+        {getListItemsLoading ? (
           <Spinner color="pink" style={styles.spinner} />
         ) : (
           <>
             <Posts
-              list={list}
+              list={getListItemsData.ListItems}
               scrollToEnd={itemAdded}
-              handleRemove={handleRemove}
+              handleRemove={onDeleteListItem}
             />
-            <Poster handleAdd={handleAdd} />
+            <Poster handleAdd={onAddListItem} />
           </>
         )}
       </View>
