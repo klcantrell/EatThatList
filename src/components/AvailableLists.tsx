@@ -30,7 +30,14 @@ interface Props {
 
 const GET_LISTS = gql`
   query($userId: String!) {
-    Lists(where: { _or: [{ owner: { _eq: $userId } }] }) {
+    Lists(
+      where: {
+        _or: [
+          { owner: { _eq: $userId } }
+          { ListAccesses: { user_id: { _eq: $userId } } }
+        ]
+      }
+    ) {
       id
       name
     }
@@ -135,11 +142,17 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
   };
 
   if (getListError) {
-    Alert.alert('Something went wrong, please try again');
+    Alert.alert(
+      'Failed to request your lists, please try again',
+      JSON.stringify(getListError)
+    );
   }
 
   if (addListError) {
-    Alert.alert('Could not add item, please try again');
+    Alert.alert(
+      'Could not add item, please try again',
+      JSON.stringify(addListError)
+    );
   }
 
   return (

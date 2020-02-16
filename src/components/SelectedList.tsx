@@ -30,6 +30,17 @@ const GET_LIST_ITEMS = gql`
     ListItems(where: { List: { id: { _eq: $listId } } }) {
       id
       description
+      creator
+    }
+  }
+`;
+
+const GET_LIST_ITEMS_SUBSCRIPTION = gql`
+  subscription($listId: Int!) {
+    ListItems(where: { List: { id: { _eq: $listId } } }) {
+      id
+      description
+      creator
     }
   }
 `;
@@ -44,6 +55,7 @@ const ADD_LIST_ITEM = gql`
       returning {
         id
         description
+        creator
       }
     }
   }
@@ -60,15 +72,16 @@ const DELETE_LIST_ITEM = gql`
 `;
 
 const SelectedList: React.FC<Props> = ({ navigation }) => {
+  const { handleSignout } = React.useContext(AppActionsContext);
   const auth = React.useContext(AuthContext);
   const [itemAdded, setItemAdded] = React.useState<boolean>(false);
   const listId = navigation.getParam('listId');
 
-  const { handleSignout } = React.useContext(AppActionsContext);
   const {
     error: getListItemsError,
     loading: getListItemsLoading,
     data: getListItemsData,
+    subscribeToMore,
   } = useQuery(GET_LIST_ITEMS, {
     variables: { listId },
   });
@@ -89,6 +102,33 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
     },
   ] = useMutation(DELETE_LIST_ITEM);
 
+  React.useEffect(() => {
+    return subscribeToMore({
+      document: GET_LIST_ITEMS_SUBSCRIPTION,
+      variables: {
+        listId,
+      },
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!prev) {
+          return { ListItems: [] };
+        }
+        if (!subscriptionData.data) {
+          return prev;
+        }
+        const existingItemIds = prev.ListItems.map(listItem => listItem.id);
+        const newListItems = subscriptionData.data.ListItems.filter(
+          listItem =>
+            listItem.creator !== auth.userId &&
+            !existingItemIds.includes(listItem.id)
+        );
+        return {
+          ...prev,
+          ListItems: [...prev.ListItems, ...newListItems],
+        };
+      },
+    });
+  }, []);
+
   const onAddListItem = (itemDescription: string) => {
     addListItem({
       variables: {
@@ -105,6 +145,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
               __typename: 'ListItems',
               id: Math.random() * -10000 + Number(auth.userId),
               description: itemDescription,
+              creator: auth.userId,
             },
           ],
         },
@@ -189,11 +230,24 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
   };
 
   if (getListItemsError) {
-    Alert.alert('Something went wrong, please try again');
+    Alert.alert(
+      'Failed to request your list items, please try again',
+      JSON.stringify(getListItemsError)
+    );
   }
 
   if (addListItemError) {
-    Alert.alert('Could not add item, please try again');
+    Alert.alert(
+      'Could not add item, please try again',
+      JSON.stringify(addListItemError)
+    );
+  }
+
+  if (deleteListItemError) {
+    Alert.alert(
+      'Could not delete item, please try again',
+      JSON.stringify(deleteListItemError)
+    );
   }
 
   return (
