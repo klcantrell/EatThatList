@@ -12,12 +12,12 @@ import {
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery, useMutation } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
 import Fab from './Fab';
 import KeyboardInput from './KeyboardInput';
 import ListCard from './ListCard';
-import { AppActionsContext } from '../common/context';
+import { AppActionsContext, AuthContext } from '../common/context';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -26,7 +26,19 @@ interface Props {
 const GET_LISTS = gql`
   query($userId: String!) {
     Lists(where: { _or: [{ owner: { _eq: $userId } }] }) {
+      id
       name
+    }
+  }
+`;
+const ADD_LIST = gql`
+  mutation($name: String!, $userId: String!) {
+    insert_Lists(objects: [{ name: $name, owner: $userId }]) {
+      returning {
+        id
+        name
+        owner
+      }
     }
   }
 `;
@@ -35,6 +47,21 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
   const { handleSignout } = React.useContext(AppActionsContext);
   const [showKeyboard, setShowKeyboard] = React.useState<boolean>(false);
   const [inputValue, setInputValue] = React.useState('');
+  const auth = React.useContext(AuthContext);
+
+  const {
+    loading: getListLoading,
+    data: getListData,
+    error: getListError,
+  } = useQuery(GET_LISTS, {
+    variables: {
+      userId: auth.userId,
+    },
+  });
+  const [
+    addList,
+    { data: addListData, loading: addListLoading, error: addListError },
+  ] = useMutation(ADD_LIST);
 
   const onSignout = () => {
     navigation.dispatch(
@@ -45,13 +72,18 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     );
   };
   const toggleShowDialog = () => setShowKeyboard(!showKeyboard);
-
-  const { loading, data, error } = useQuery(GET_LISTS, {
-    variables: {
-      userId: '',
-    },
-    fetchPolicy: 'no-cache',
-  });
+  const hideKeyboardAndClear = () => {
+    setShowKeyboard(false);
+    setInputValue('');
+  };
+  const onSelectList = (listId: number) => {
+    navigation.navigate({
+      routeName: 'SelectedList',
+      params: {
+        listId,
+      },
+    });
+  };
 
   return (
     <>
@@ -68,18 +100,24 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       </Header>
       <TouchableWithoutFeedback
         onPress={() => {
-          setShowKeyboard(false);
+          hideKeyboardAndClear();
           Keyboard.dismiss();
         }}
       >
         <View style={styles.container}>
           <View style={styles.cardContainer}>
-            {error ? (
-              <Text>{error.message}</Text>
-            ) : loading ? (
+            {getListError ? (
+              <Text>{getListError.message}</Text>
+            ) : getListLoading ? (
               <Text>Loading...</Text>
             ) : (
-              data.Lists.map(list => <ListCard name={list.name} />)
+              getListData.Lists.map(list => (
+                <ListCard
+                  key={list.id}
+                  name={list.name}
+                  onPress={() => onSelectList(list.id)}
+                />
+              ))
             )}
           </View>
           <KeyboardInput
@@ -87,11 +125,56 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
             value={inputValue}
             visible={showKeyboard}
             onChange={setInputValue}
-            onBlur={() => setInputValue('')}
+            onAdd={() =>
+              addList({
+                variables: {
+                  name: inputValue,
+                  userId: auth.userId,
+                },
+                optimisticResponse: {
+                  __typename: 'mutation_root',
+                  insert_Lists: {
+                    __typename: 'Lists_mutation_response',
+                    returning: [
+                      {
+                        __typename: 'Lists',
+                        owner: auth.userId,
+                        name: inputValue,
+                        id: null,
+                      },
+                    ],
+                  },
+                },
+                update: (
+                  proxy,
+                  {
+                    data: {
+                      insert_Lists: { returning },
+                    },
+                  }
+                ) => {
+                  const { Lists } = proxy.readQuery({
+                    query: GET_LISTS,
+                    variables: {
+                      userId: auth.userId,
+                    },
+                  });
+                  proxy.writeQuery({
+                    query: GET_LISTS,
+                    variables: {
+                      userId: auth.userId,
+                    },
+                    data: { Lists: [...Lists, ...returning] },
+                  });
+                },
+              })
+            }
+            onReturn={hideKeyboardAndClear}
+            onBlur={hideKeyboardAndClear}
           />
           <Fab
             color="red"
-            icon="add"
+            icon="flame"
             onPress={toggleShowDialog}
             style={styles.fabBtn}
           />
@@ -108,12 +191,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: '100%',
-  },
-  dialog: {
-    position: 'absolute',
   },
   fabBtn: {
     position: 'absolute',

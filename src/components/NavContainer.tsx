@@ -1,9 +1,9 @@
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
-import Main from './components/Main';
-import Login from './components/Login';
-import SelectedList from './components/SelectedList';
-import AvailableLists from './components/AvailableLists';
+import Main from './Main';
+import Login from './Login';
+import SelectedList from './SelectedList';
+import AvailableLists from './AvailableLists';
 
 const AppNavigator = createStackNavigator({
   Login: {

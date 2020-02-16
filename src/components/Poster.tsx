@@ -22,11 +22,11 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
         visible={showKeyboard}
         onChange={setInputValue}
         onBlur={toggleInput}
-        onButtonPress={() => {
+        onAdd={() => {
           handleAdd(Number(inputValue));
           setInputValue('');
         }}
-        onSubmit={() => setInputValue('')}
+        onReturn={() => setInputValue('')}
       />
       <Fab
         color="red"

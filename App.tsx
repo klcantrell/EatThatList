@@ -1,19 +1,26 @@
 import React from 'react';
-import { AsyncStorage } from 'react-native';
+import ApolloClient from 'apollo-client';
+import { NormalizedCacheObject } from 'apollo-cache-inmemory';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { AppLoading } from 'expo';
 import { loadAsync as loadFontAsync } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
-import { setupFirebase } from './src/firebase';
 import firebase from 'firebase/app';
-import { createGraphqlClient } from './src/apollo';
-import NavContainer from './src/NavContainer';
+import { AuthContextProvider, Auth } from './src/common/context';
+import { setupFirebase } from './src/services/firebase';
+import { createGraphqlClient } from './src/services/apollo';
+import NavContainer from './src/components/NavContainer';
 
 setupFirebase();
 
 const App: React.FC = () => {
   const [fontsLoaded, setFontsLoaded] = React.useState<boolean>(false);
-  const [client, setClient] = React.useState(null);
+  const [client, setClient] = React.useState<
+    ApolloClient<NormalizedCacheObject>
+  >(null);
+  const [auth, setAuth] = React.useState<Auth>(null);
+  const authButNoClient = auth?.token !== null && !client;
+  const noAuthNoClient = auth?.token == null && !client;
 
   React.useEffect(() => {
     const loadFonts = async () => {
@@ -26,19 +33,32 @@ const App: React.FC = () => {
     loadFonts();
     setFontsLoaded(true);
     return firebase.auth().onAuthStateChanged(async user => {
-      const token = await user.getIdToken();
-      setClient(createGraphqlClient(token));
+      if (user) {
+        const token = await user.getIdToken();
+        const userId = user.uid;
+        setClient(createGraphqlClient(token));
+        setAuth({
+          token,
+          userId,
+        });
+      }
     });
   }, []);
 
-  if (!fontsLoaded || !client) {
+  if (!fontsLoaded || authButNoClient) {
     return <AppLoading />;
   }
 
+  if (noAuthNoClient) {
+    return <NavContainer />;
+  }
+
   return (
-    <ApolloProvider client={client}>
-      <NavContainer />
-    </ApolloProvider>
+    <AuthContextProvider value={auth}>
+      <ApolloProvider client={client}>
+        <NavContainer />
+      </ApolloProvider>
+    </AuthContextProvider>
   );
 };
 

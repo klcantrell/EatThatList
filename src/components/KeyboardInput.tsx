@@ -20,8 +20,8 @@ interface Props {
   visible?: boolean;
   onChange?: (text: string) => void;
   onBlur?: () => void;
-  onButtonPress?: () => void;
-  onSubmit?: () => void;
+  onAdd?: () => void;
+  onReturn?: () => void;
 }
 
 const KeyboardInput: React.FC<Props> = ({
@@ -30,8 +30,8 @@ const KeyboardInput: React.FC<Props> = ({
   visible = false,
   onChange = () => {},
   onBlur = () => {},
-  onButtonPress = () => {},
-  onSubmit = () => {},
+  onAdd = () => {},
+  onReturn = () => {},
 }) => {
   const textInput = React.useRef(null);
   const previousInputVisible = usePrevious(visible);
@@ -102,13 +102,13 @@ const KeyboardInput: React.FC<Props> = ({
             onBlur={onBlur}
             value={value}
             ref={textInput}
-            onSubmitEditing={onSubmit}
+            onSubmitEditing={onReturn}
           />
         </Item>
         <Button
           style={styles.addBtn}
           onPress={() => {
-            onButtonPress();
+            onAdd();
             Keyboard.dismiss();
           }}
         >

@@ -16,4 +16,20 @@ const AppActionsContext = React.createContext({
   },
 });
 
-export { AppActionsContext };
+interface Auth {
+  token: string | null;
+  userId: string | null;
+}
+
+interface AuthProviderProps {
+  value: Auth;
+}
+
+const AuthContext = React.createContext<Auth>({ token: null, userId: null });
+
+const AuthContextProvider: React.FC<AuthProviderProps> = ({
+  children,
+  value,
+}) => <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+
+export { AppActionsContext, AuthContext, AuthContextProvider, Auth };

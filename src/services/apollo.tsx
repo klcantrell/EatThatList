@@ -5,7 +5,7 @@ import { HttpLink } from 'apollo-link-http';
 const GRAPHQL_ENDPOINT = 'https://eat-that-list.herokuapp.com/v1/graphql';
 
 const cache = new InMemoryCache();
-const createLink = token =>
+const createLink = (token: string) =>
   new HttpLink({
     uri: GRAPHQL_ENDPOINT,
     headers: {
@@ -13,8 +13,7 @@ const createLink = token =>
     },
   });
 
-const createGraphqlClient = token => {
-  console.log(token);
+const createGraphqlClient = (token: string) => {
   return new ApolloClient({
     cache,
     link: createLink(token),
