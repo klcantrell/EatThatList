@@ -23,6 +23,7 @@ import Fab from './Fab';
 import KeyboardInput from './KeyboardInput';
 import ListCard from './ListCard';
 import { AppActionsContext, AuthContext } from '../common/context';
+import { FlatList } from 'react-native-gesture-handler';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -40,6 +41,33 @@ const GET_LISTS = gql`
     ) {
       id
       name
+      owner
+      ListItems_aggregate {
+        aggregate {
+          count
+        }
+      }
+    }
+  }
+`;
+const GET_LISTS_SUBSCRIPTION = gql`
+  subscription($userId: String!) {
+    Lists(
+      where: {
+        _or: [
+          { owner: { _eq: $userId } }
+          { ListAccesses: { user_id: { _eq: $userId } } }
+        ]
+      }
+    ) {
+      id
+      name
+      owner
+      ListItems_aggregate {
+        aggregate {
+          count
+        }
+      }
     }
   }
 `;
@@ -50,6 +78,11 @@ const ADD_LIST = gql`
         id
         name
         owner
+        ListItems_aggregate {
+          aggregate {
+            count
+          }
+        }
       }
     }
   }
@@ -65,6 +98,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     loading: getListLoading,
     data: getListData,
     error: getListError,
+    subscribeToMore,
   } = useQuery(GET_LISTS, {
     variables: {
       userId: auth.userId,
@@ -90,6 +124,13 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
               owner: auth.userId,
               name: inputValue,
               id: Math.random() * -10000 + Number(auth.userId),
+              ListItems_aggregate: {
+                __typename: 'ListItems_aggregate',
+                aggregate: {
+                  __typename: 'ListItems_aggregate_fields',
+                  count: 0,
+                },
+              },
             },
           ],
         },
@@ -118,6 +159,15 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       },
     });
   };
+
+  React.useEffect(() => {
+    return subscribeToMore({
+      document: GET_LISTS_SUBSCRIPTION,
+      variables: {
+        userId: auth.userId,
+      },
+    });
+  }, []);
 
   const onSignout = () => {
     navigation.dispatch(
@@ -179,13 +229,18 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
             {getListLoading ? (
               <Text>Loading...</Text>
             ) : (
-              getListData.Lists.map(list => (
-                <ListCard
-                  key={list.id}
-                  name={list.name}
-                  onPress={() => onSelectList(list.id)}
-                />
-              ))
+              <FlatList
+                data={getListData.Lists}
+                renderItem={({ item }) => (
+                  <ListCard
+                    key={item.id}
+                    itemCount={item.ListItems_aggregate.aggregate.count}
+                    name={item.name}
+                    onPress={() => onSelectList(item.id)}
+                  />
+                )}
+                keyExtractor={item => String(item.id)}
+              />
             )}
           </View>
           <KeyboardInput

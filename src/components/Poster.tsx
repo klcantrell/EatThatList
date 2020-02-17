@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   },
   fabBtn: {
     position: 'relative',
-    bottom: 50,
+    bottom: 30,
     right: 50,
     justifyContent: 'center',
   },

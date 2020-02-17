@@ -11,6 +11,7 @@ import {
   View,
   Text,
   Icon,
+  Container,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -115,15 +116,24 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
         if (!subscriptionData.data) {
           return prev;
         }
-        const existingItemIds = prev.ListItems.map(listItem => listItem.id);
-        const newListItems = subscriptionData.data.ListItems.filter(
-          listItem =>
-            listItem.creator !== auth.userId &&
-            !existingItemIds.includes(listItem.id)
-        );
+        const existingItems = prev.ListItems;
+        const existingItemIds = existingItems.map(listItem => listItem.id);
+        const liveItems = subscriptionData.data.ListItems;
+        const liveItemIds = liveItems.map(listItem => listItem.id);
+        const updatedItems =
+          existingItems.length <= liveItems.length
+            ? [
+                ...existingItems,
+                ...liveItems.filter(
+                  item =>
+                    item.creator !== auth.userId &&
+                    !existingItemIds.includes(item.id)
+                ),
+              ]
+            : existingItems.filter(item => liveItemIds.includes(item.id));
         return {
           ...prev,
-          ListItems: [...prev.ListItems, ...newListItems],
+          ListItems: updatedItems,
         };
       },
     });
@@ -251,10 +261,10 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
   }
 
   return (
-    <>
+    <Container>
       <Header>
         <Left>
-          <Button transparent onPress={() => navigation.goBack()}>
+          <Button transparent onPress={() => navigation.pop()}>
             <Icon name="arrow-back" style={styles.arrowBack} />
             <Text>Your lists</Text>
           </Button>
@@ -282,7 +292,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
           </>
         )}
       </View>
-    </>
+    </Container>
   );
 };
 

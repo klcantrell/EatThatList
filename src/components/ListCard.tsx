@@ -1,17 +1,23 @@
 import React from 'react';
-import { Card, Text } from 'native-base';
+import { Card, Text, View } from 'native-base';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 interface Props {
   name: string;
+  itemCount: number;
   onPress: () => void;
 }
 
-const ListCard: React.FC<Props> = ({ name, onPress }) => {
+const ListCard: React.FC<Props> = ({ name, onPress, itemCount }) => {
   return (
     <Card style={styles.card}>
       <TouchableOpacity style={styles.touchable} onPress={onPress}>
-        <Text>{name}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{name}</Text>
+        </View>
+        <Text style={styles.metadata}>
+          {itemCount} {itemCount === 1 ? 'item' : 'items'}
+        </Text>
       </TouchableOpacity>
     </Card>
   );
@@ -19,9 +25,23 @@ const ListCard: React.FC<Props> = ({ name, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    height: 200,
+    height: 175,
     marginLeft: 10,
     marginRight: 10,
+  },
+  title: {
+    fontSize: 26,
+  },
+  titleContainer: {
+    borderBottomColor: 'lightgrey',
+    borderBottomWidth: 1,
+    width: '40%',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  metadata: {
+    marginTop: 5,
+    color: 'grey',
   },
   touchable: {
     width: '100%',
