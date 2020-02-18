@@ -210,6 +210,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
           },
         }
       ) => {
+        Alert.alert('RETURNING FROM LIST ITEMS', JSON.stringify(returning));
         const returnedIds = returning.map(returned => returned.id);
         const { ListItems } = proxy.readQuery({
           query: GET_LIST_ITEMS,

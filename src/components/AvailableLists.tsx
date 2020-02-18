@@ -29,7 +29,7 @@ interface Props {
   navigation: NavigationStackProp;
 }
 
-const GET_LISTS = gql`
+export const GET_LISTS = gql`
   query($userId: String!) {
     Lists(
       where: {
@@ -166,6 +166,33 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       variables: {
         userId: auth.userId,
       },
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!prev) {
+          return { Lists: [] };
+        }
+        if (!subscriptionData.data) {
+          return prev;
+        }
+        const existingItems = prev.Lists;
+        const existingItemIds = existingItems.map(list => list.id);
+        const liveItems = subscriptionData.data.Lists;
+        const liveItemIds = liveItems.map(list => list.id);
+        const updatedItems =
+          existingItems.length <= liveItems.length
+            ? [
+                ...existingItems,
+                ...liveItems.filter(
+                  item =>
+                    item.owner !== auth.userId &&
+                    !existingItemIds.includes(item.id)
+                ),
+              ]
+            : existingItems.filter(item => liveItemIds.includes(item.id));
+        return {
+          ...prev,
+          Lists: updatedItems,
+        };
+      },
     });
   }, []);
 
@@ -182,11 +209,12 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     setShowKeyboard(false);
     setInputValue('');
   };
-  const onSelectList = (listId: number) => {
+  const onSelectList = (listId: number, owner: string) => {
     navigation.navigate({
       routeName: 'SelectedList',
       params: {
         listId,
+        owner,
       },
     });
   };
@@ -236,7 +264,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
                     key={item.id}
                     itemCount={item.ListItems_aggregate.aggregate.count}
                     name={item.name}
-                    onPress={() => onSelectList(item.id)}
+                    onPress={() => onSelectList(item.id, item.owner)}
                   />
                 )}
                 keyExtractor={item => String(item.id)}

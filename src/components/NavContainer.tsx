@@ -18,10 +18,14 @@ const SelectedListWithSettings = createBottomTabNavigator(
         tabBarLabel: ({ focused }) => (
           <View style={styles.tab}>
             <Icon
-              style={[styles.icon, { color: focused ? 'blue' : 'black' }]}
+              style={[styles.icon, { color: focused ? 'purple' : 'black' }]}
               name="list"
             />
-            <Text style={styles.label}>List</Text>
+            <Text
+              style={[styles.label, { color: focused ? 'purple' : 'black' }]}
+            >
+              List
+            </Text>
           </View>
         ),
       },
@@ -32,10 +36,14 @@ const SelectedListWithSettings = createBottomTabNavigator(
         tabBarLabel: ({ focused }) => (
           <View style={styles.tab}>
             <Icon
-              style={[styles.icon, { color: focused ? 'blue' : 'black' }]}
+              style={[styles.icon, { color: focused ? 'purple' : 'black' }]}
               name="cog"
             />
-            <Text style={styles.label}>Settings</Text>
+            <Text
+              style={[styles.label, { color: focused ? 'purple' : 'black' }]}
+            >
+              Settings
+            </Text>
           </View>
         ),
       },
