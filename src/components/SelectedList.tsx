@@ -153,7 +153,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
           returning: [
             {
               __typename: 'ListItems',
-              id: Math.random() * -10000 + Number(auth.userId),
+              id: Math.random() * -10000,
               description: itemDescription,
               creator: auth.userId,
             },

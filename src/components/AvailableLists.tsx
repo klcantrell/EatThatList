@@ -108,6 +108,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     addList,
     { data: addListData, loading: addListLoading, error: addListError },
   ] = useMutation(ADD_LIST);
+
   const onAddList = () => {
     addList({
       variables: {
@@ -123,7 +124,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
               __typename: 'Lists',
               owner: auth.userId,
               name: inputValue,
-              id: Math.random() * -10000 + Number(auth.userId),
+              id: Math.random() * -10000,
               ListItems_aggregate: {
                 __typename: 'ListItems_aggregate',
                 aggregate: {
