@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Alert, ActivityIndicator, Keyboard } from 'react-native';
 import {
   Text,
   Container,
@@ -22,6 +22,8 @@ import gql from 'graphql-tag';
 import { useMutation, useApolloClient, useQuery } from '@apollo/react-hooks';
 import { GET_LISTS } from './AvailableLists';
 import { AppActionsContext, AuthContext } from '../common/context';
+import Invite, { GET_COLLABORATORS } from './Invite';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -49,17 +51,6 @@ const FIND_INVITEE = gql`
   }
 `;
 
-const GET_COLLABORATORS = gql`
-  query($listId: Int!) {
-    Invites(where: { list_id: { _eq: $listId } }) {
-      id
-      inviter
-      invitee
-      accepted
-    }
-  }
-`;
-
 const ADD_INVITEE = gql`
   mutation($inviterId: String!, $inviteeId: String!, $listId: Int!) {
     insert_Invites(
@@ -67,9 +58,13 @@ const ADD_INVITEE = gql`
     ) {
       returning {
         id
+        list_id
         inviter
         invitee
         accepted
+        Invited {
+          email
+        }
       }
     }
   }
@@ -78,6 +73,7 @@ const ADD_INVITEE = gql`
 const ListSettings: React.FC<Props> = ({ navigation }) => {
   const { handleSignout } = React.useContext(AppActionsContext);
   const auth = React.useContext(AuthContext);
+  const inviteeInputRef = React.useRef(null);
 
   const [inviteeInput, setInviteeInput] = React.useState<string>('');
   const [findInviteeLoading, setFindInviteeLoading] = React.useState<boolean>(
@@ -169,6 +165,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
       variables: {
         email: inviteeInput,
       },
+      fetchPolicy: 'no-cache',
     });
     setFindInviteeLoading(false);
     if (
@@ -194,7 +191,12 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
                   inviter: auth.userId,
                   invitee: data.Users[0].id,
                   id: Math.random() * -10000,
+                  list_id: listId,
                   accepted: null,
+                  Invited: {
+                    __typename: 'Users',
+                    email: inviteeInput,
+                  },
                 },
               ],
             },
@@ -222,6 +224,9 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
             });
           },
         });
+        inviteeInputRef?.current?._root?.blur();
+        setInviteeInput('');
+        Keyboard.dismiss();
       }
     } else {
       Alert.alert('Could not find invitee');
@@ -244,9 +249,17 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
     ]);
   };
 
-  const showDeleteError = () => {
-    Alert.alert('', 'Only the owner of this list can delete it');
-  };
+  if (getCollaboratorsError) {
+    Alert.alert(
+      'There was an issue fetching your collaborators, please try again'
+    );
+  }
+  if (deleteListError) {
+    Alert.alert('There was an issue deleting the list, please try again');
+  }
+  if (addInviteeError) {
+    Alert.alert('There was an issue sending the invitation, please try again');
+  }
 
   return (
     <Container>
@@ -266,67 +279,90 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
           </Button>
         </Right>
       </Header>
-      <View>
-        <ListItem itemHeader first>
-          <Text>COLLABORATORS</Text>
-        </ListItem>
-        <ListItem>
-          <Text>Kalalau</Text>
-        </ListItem>
-        <ListItem
-          style={{
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-            height: 55,
-            paddingTop: 0,
-            paddingBottom: 8,
-          }}
-          last
-        >
-          <Item style={{ width: '85%' }}>
-            <Input
-              style={{ height: 30 }}
-              placeholder="Invite someone..."
-              value={inviteeInput}
-              onChangeText={setInviteeInput}
-            />
-          </Item>
-          <Button
-            bordered
-            style={{ height: 40, marginLeft: 'auto' }}
-            onPress={onAddInvitee}
-          >
-            {findInviteeLoading ? (
-              <ActivityIndicator style={{ marginRight: 10, marginLeft: 10 }} />
-            ) : (
-              <Icon
-                name="share"
-                style={{
-                  marginRight: 12,
-                  marginLeft: 12,
-                  marginTop: 0,
-                  marginBottom: 0,
-                }}
-              />
-            )}
-          </Button>
-        </ListItem>
-      </View>
-      <ListItem itemDivider style={{ height: 80 }} />
-      <ListItem last>
-        <Left>
-          <Text>Delete List</Text>
-        </Left>
-        <Right>
-          <Button
-            danger
-            onPress={owner === auth.userId ? showDeletePrompt : showDeleteError}
-          >
-            <Icon name="trash" />
-          </Button>
-        </Right>
-      </ListItem>
-      <Separator />
+      {owner === auth.userId ? (
+        <>
+          <View>
+            <ListItem itemHeader first>
+              <Text>COLLABORATORS</Text>
+            </ListItem>
+            {getCollaboratorsData?.Invites?.map(invite => (
+              <Invite key={invite.id} invite={invite} />
+            ))}
+            <ListItem
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+                height: 55,
+                paddingTop: 0,
+                paddingBottom: 8,
+              }}
+              last
+            >
+              <Item style={{ width: '85%' }}>
+                <Input
+                  style={{ height: 30 }}
+                  placeholder="Invite someone..."
+                  value={inviteeInput}
+                  onChangeText={setInviteeInput}
+                  keyboardAppearance="dark"
+                  ref={inviteeInputRef}
+                />
+              </Item>
+              <Button
+                bordered
+                style={{ height: 40, marginLeft: 'auto' }}
+                onPress={onAddInvitee}
+              >
+                {findInviteeLoading ? (
+                  <ActivityIndicator
+                    style={{ marginRight: 10, marginLeft: 10 }}
+                  />
+                ) : (
+                  <Icon
+                    name="share"
+                    style={{
+                      marginRight: 12,
+                      marginLeft: 12,
+                      marginTop: 0,
+                      marginBottom: 0,
+                    }}
+                  />
+                )}
+              </Button>
+            </ListItem>
+          </View>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ListItem itemDivider style={{ height: 80 }} />
+          </TouchableWithoutFeedback>
+          <ListItem last>
+            <Left>
+              <Text>Delete List</Text>
+            </Left>
+            <Right>
+              <Button danger onPress={showDeletePrompt}>
+                <Icon name="trash" />
+              </Button>
+            </Right>
+          </ListItem>
+        </>
+      ) : (
+        <>
+          <ListItem itemDivider style={{ height: 80 }} />
+          <ListItem last>
+            <Left>
+              <Text>Leave list</Text>
+            </Left>
+            <Right>
+              <Button danger onPress={() => Alert.alert('Byee')}>
+                <Icon name="exit" />
+              </Button>
+            </Right>
+          </ListItem>
+        </>
+      )}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ListItem itemDivider style={{ height: '100%' }} />
+      </TouchableWithoutFeedback>
     </Container>
   );
 };

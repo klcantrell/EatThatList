@@ -4,6 +4,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  FlatList,
 } from 'react-native';
 import {
   View,
@@ -23,7 +24,6 @@ import Fab from './Fab';
 import KeyboardInput from './KeyboardInput';
 import ListCard from './ListCard';
 import { AppActionsContext, AuthContext } from '../common/context';
-import { FlatList } from 'react-native-gesture-handler';
 
 interface Props {
   navigation: NavigationStackProp;
