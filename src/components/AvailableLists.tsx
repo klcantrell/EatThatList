@@ -24,6 +24,7 @@ import Fab from './Fab';
 import KeyboardInput from './KeyboardInput';
 import ListCard from './ListCard';
 import { AppActionsContext, AuthContext } from '../common/context';
+import InviteCard from './InviteCard';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -88,6 +89,31 @@ const ADD_LIST = gql`
   }
 `;
 
+const GET_NEW_INVITES = gql`
+  query($userId: String!) {
+    Invites(
+      where: {
+        _and: [{ invitee: { _eq: $userId } }, { accepted: { _is_null: true } }]
+      }
+    ) {
+      id
+      accepted
+      List {
+        id
+        name
+        ListItems_aggregate {
+          aggregate {
+            count
+          }
+        }
+        UserOwner {
+          email
+        }
+      }
+    }
+  }
+`;
+
 const AvailableLists: React.FC<Props> = ({ navigation }) => {
   const { handleSignout } = React.useContext(AppActionsContext);
   const [showKeyboard, setShowKeyboard] = React.useState<boolean>(false);
@@ -100,6 +126,15 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     error: getListError,
     subscribeToMore,
   } = useQuery(GET_LISTS, {
+    variables: {
+      userId: auth.userId,
+    },
+  });
+  const {
+    loading: getInvitesLoading,
+    data: getInvitesData,
+    error: getInvitesError,
+  } = useQuery(GET_NEW_INVITES, {
     variables: {
       userId: auth.userId,
     },
@@ -234,6 +269,13 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     );
   }
 
+  if (getInvitesError) {
+    Alert.alert(
+      'There was an issue getting your invites',
+      JSON.stringify(getInvitesError)
+    );
+  }
+
   return (
     <>
       <Header>
@@ -255,20 +297,29 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.container}>
           <View style={styles.cardContainer}>
-            {getListLoading ? (
-              <Text>Loading...</Text>
+            {getListLoading || getInvitesLoading ? (
+              <Text>Loading lists...</Text>
             ) : (
               <FlatList
-                data={getListData.Lists}
-                renderItem={({ item }) => (
-                  <ListCard
-                    key={item.id}
-                    itemCount={item.ListItems_aggregate.aggregate.count}
-                    name={item.name}
-                    onPress={() => onSelectList(item.id, item.owner)}
-                  />
-                )}
-                keyExtractor={item => String(item.id)}
+                data={[...getListData.Lists, ...getInvitesData.Invites]}
+                renderItem={({ item }) =>
+                  item.owner ? (
+                    <ListCard
+                      itemCount={item.ListItems_aggregate.aggregate.count}
+                      name={item.name}
+                      onPress={() => onSelectList(item.id, item.owner)}
+                    />
+                  ) : (
+                    <InviteCard
+                      name={item.List.name}
+                      inviter={item.List.UserOwner.email}
+                      itemCount={item.List.ListItems_aggregate.aggregate.count}
+                    />
+                  )
+                }
+                keyExtractor={item =>
+                  String(item.id) + item.owner || item.invitee
+                }
               />
             )}
           </View>

@@ -11,6 +11,7 @@ interface Invite {
   accepted: boolean | null;
   id: number;
   list_id: number;
+  invitee: string;
 }
 
 interface Props {
@@ -42,6 +43,18 @@ const DELETE_INVITE = gql`
   }
 `;
 
+const DELETE_LIST_ACCESS = gql`
+  mutation($listId: Int!, $userId: String!) {
+    delete_ListAccess(
+      where: {
+        _and: [{ list_id: { _eq: $listId } }, { user_id: { _eq: $userId } }]
+      }
+    ) {
+      affected_rows
+    }
+  }
+`;
+
 const getInviteStatus = (accepted: boolean | null) => {
   if (accepted === null) {
     return 'Pending';
@@ -61,51 +74,74 @@ const Invite: React.FC<Props> = ({ invite }) => {
       error: deleteInviteError,
     },
   ] = useMutation(DELETE_INVITE);
+  const [
+    deleteListAccess,
+    {
+      data: deleteListAccessData,
+      loading: deleteListAccessLoading,
+      error: deleteListAccessError,
+    },
+  ] = useMutation(DELETE_LIST_ACCESS);
 
-  const onDeleteInvite = () => {
-    deleteInvite({
-      variables: {
-        inviteId: invite.id,
-      },
-      optimisticResponse: {
-        __typename: 'mutation_root',
-        delete_Invites: {
-          __typename: 'Invites_mutation_response',
-          returning: {
-            __typename: 'Invites',
-            id: invite.id,
+  const onDeleteInvite = async () => {
+    await Promise.all([
+      deleteInvite({
+        variables: {
+          inviteId: invite.id,
+        },
+        optimisticResponse: {
+          __typename: 'mutation_root',
+          delete_Invites: {
+            __typename: 'Invites_mutation_response',
+            returning: {
+              __typename: 'Invites',
+              id: invite.id,
+            },
           },
         },
-      },
-      update: (
-        proxy,
-        {
-          data: {
-            delete_Invites: { returning },
-          },
-        }
-      ) => {
-        if (!returning.length) {
-          return;
-        }
-        const returnedIds = returning.map(returned => returned.id);
-        const { Invites } = proxy.readQuery({
-          query: GET_COLLABORATORS,
-          variables: {
-            listId: invite.list_id,
-          },
-        });
-        proxy.writeQuery({
-          query: GET_COLLABORATORS,
-          variables: {
-            listId: invite.list_id,
-          },
-          data: {
-            Invites: Invites.filter(invite => !returnedIds.includes(invite.id)),
-          },
-        });
-      },
-    });
+        update: (
+          proxy,
+          {
+            data: {
+              delete_Invites: { returning },
+            },
+          }
+        ) => {
+          if (!returning.length) {
+            return;
+          }
+          const returnedIds = returning.map(returned => returned.id);
+          const { Invites } = proxy.readQuery({
+            query: GET_COLLABORATORS,
+            variables: {
+              listId: invite.list_id,
+            },
+          });
+          proxy.writeQuery({
+            query: GET_COLLABORATORS,
+            variables: {
+              listId: invite.list_id,
+            },
+            data: {
+              Invites: Invites.filter(
+                invite => !returnedIds.includes(invite.id)
+              ),
+            },
+          });
+        },
+      }),
+      deleteListAccess({
+        variables: {
+          listId: invite.list_id,
+          userId: invite.invitee,
+        },
+      }),
+    ]);
+    if (deleteListAccessError) {
+      Alert.alert(
+        'Something went wrong removing this collaborator, please contact support'
+      );
+    }
   };
 
   const showDeletePrompt = () => {

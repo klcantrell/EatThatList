@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, Alert, ActivityIndicator, Keyboard } from 'react-native';
+import {
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import {
   Text,
   Container,
@@ -11,7 +17,6 @@ import {
   Title,
   Icon,
   ListItem,
-  Separator,
   View,
   Item,
   Input,
@@ -23,7 +28,6 @@ import { useMutation, useApolloClient, useQuery } from '@apollo/react-hooks';
 import { GET_LISTS } from './AvailableLists';
 import { AppActionsContext, AuthContext } from '../common/context';
 import Invite, { GET_COLLABORATORS } from './Invite';
-import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 interface Props {
   navigation: NavigationStackProp;
