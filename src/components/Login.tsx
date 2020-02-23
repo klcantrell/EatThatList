@@ -14,13 +14,14 @@ import {
   NavigationActions,
 } from 'react-navigation';
 import firebase from 'firebase/app';
+import { AuthContext } from '../common/context';
 
 interface Props {
   navigation: NavigationScreenProp<{}>;
 }
 
 const Login: React.FC<Props> = ({ navigation }) => {
-  const [authNeeded, setAuthNeeded] = React.useState<boolean>(false);
+  const auth = React.useContext(AuthContext);
   const [creatingAccount, setCreatingAccount] = React.useState<boolean>(false);
   const [loggingIn, setLoggingIn] = React.useState<boolean>(false);
   const [username, setUsername] = React.useState<string>('');
@@ -42,91 +43,83 @@ const Login: React.FC<Props> = ({ navigation }) => {
   };
 
   React.useEffect(() => {
-    return firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        reset();
-        navigation.dispatch(
-          StackActions.reset({
-            index: 0,
-            actions: [NavigationActions.navigate({ routeName: 'Main' })],
-          })
-        );
-      } else {
-        setAuthNeeded(true);
-      }
-    });
-  }, []);
+    if (auth?.token !== null) {
+      reset();
+      navigation.dispatch(
+        StackActions.reset({
+          index: 0,
+          actions: [NavigationActions.navigate({ routeName: 'Main' })],
+        })
+      );
+    }
+  }, [auth]);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      {authNeeded ? (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.content}>
-            <Item style={styles.loginInput}>
-              <Input
-                placeholder="email"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-                autoCompleteType="off"
-                ref={usernameInput}
-              />
-            </Item>
-            <Item style={styles.loginInput}>
-              <Input
-                placeholder="password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCompleteType="off"
-                ref={passwordInput}
-              />
-            </Item>
-            <View style={styles.loginActions}>
-              <Button
-                rounded
-                style={[styles.loginActionsButton, styles.signInButton]}
-                onPress={() => {
-                  setLoggingIn(true);
-                  firebase
-                    .auth()
-                    .signInWithEmailAndPassword(username, password)
-                    .catch(err => {
-                      reset();
-                      Alert.alert(JSON.stringify(err, null, 2));
-                    });
-                }}
-              >
-                {loggingIn ? <ActivityIndicator /> : <Text>Sign in</Text>}
-              </Button>
-              <Button
-                rounded
-                style={[styles.loginActionsButton, styles.createAccountButton]}
-                onPress={() => {
-                  setCreatingAccount(true);
-                  firebase
-                    .auth()
-                    .createUserWithEmailAndPassword(username, password)
-                    .catch(err => {
-                      reset();
-                      Alert.alert(JSON.stringify(err, null, 2));
-                    });
-                }}
-              >
-                {creatingAccount ? (
-                  <ActivityIndicator />
-                ) : (
-                  <Text>Create an account</Text>
-                )}
-              </Button>
-            </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.content}>
+          <Item style={styles.loginInput}>
+            <Input
+              placeholder="email"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              autoCompleteType="off"
+              ref={usernameInput}
+            />
+          </Item>
+          <Item style={styles.loginInput}>
+            <Input
+              placeholder="password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCompleteType="off"
+              ref={passwordInput}
+            />
+          </Item>
+          <View style={styles.loginActions}>
+            <Button
+              rounded
+              style={[styles.loginActionsButton, styles.signInButton]}
+              onPress={() => {
+                setLoggingIn(true);
+                firebase
+                  .auth()
+                  .signInWithEmailAndPassword(username, password)
+                  .catch(err => {
+                    reset();
+                    Alert.alert(JSON.stringify(err, null, 2));
+                  });
+              }}
+            >
+              {loggingIn ? <ActivityIndicator /> : <Text>Sign in</Text>}
+            </Button>
+            <Button
+              rounded
+              style={[styles.loginActionsButton, styles.createAccountButton]}
+              onPress={() => {
+                setCreatingAccount(true);
+                firebase
+                  .auth()
+                  .createUserWithEmailAndPassword(username, password)
+                  .catch(err => {
+                    reset();
+                    Alert.alert(JSON.stringify(err, null, 2));
+                  });
+              }}
+            >
+              {creatingAccount ? (
+                <ActivityIndicator />
+              ) : (
+                <Text>Create an account</Text>
+              )}
+            </Button>
           </View>
-        </TouchableWithoutFeedback>
-      ) : (
-        <Spinner color="pink" style={styles.spinner} />
-      )}
+        </View>
+      </TouchableWithoutFeedback>
     </View>
   );
 };

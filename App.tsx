@@ -18,7 +18,7 @@ const App: React.FC = () => {
   const [client, setClient] = React.useState<
     ApolloClient<NormalizedCacheObject>
   >(null);
-  const [auth, setAuth] = React.useState<Auth>(null);
+  const [auth, setAuth] = React.useState<Auth>({ token: null, userId: null });
   const authButNoClient = auth?.token !== null && !client;
   const noAuthNoClient = auth?.token == null && !client;
 
@@ -41,6 +41,12 @@ const App: React.FC = () => {
           token,
           userId,
         });
+      } else {
+        setAuth({
+          token: null,
+          userId: null,
+        });
+        setClient(null);
       }
     });
   }, []);
