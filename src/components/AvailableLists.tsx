@@ -25,6 +25,7 @@ import KeyboardInput from './KeyboardInput';
 import ListCard from './ListCard';
 import { AppActionsContext, AuthContext } from '../common/context';
 import InviteCard from './InviteCard';
+import { GET_NEW_INVITES } from './InviteCard';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -83,31 +84,6 @@ const ADD_LIST = gql`
           aggregate {
             count
           }
-        }
-      }
-    }
-  }
-`;
-
-const GET_NEW_INVITES = gql`
-  query($userId: String!) {
-    Invites(
-      where: {
-        _and: [{ invitee: { _eq: $userId } }, { accepted: { _is_null: true } }]
-      }
-    ) {
-      id
-      accepted
-      List {
-        id
-        name
-        ListItems_aggregate {
-          aggregate {
-            count
-          }
-        }
-        UserOwner {
-          email
         }
       }
     }
@@ -311,6 +287,8 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
                     />
                   ) : (
                     <InviteCard
+                      inviteId={item.id}
+                      listId={item.List.id}
                       name={item.List.name}
                       inviter={item.List.UserOwner.email}
                       itemCount={item.List.ListItems_aggregate.aggregate.count}

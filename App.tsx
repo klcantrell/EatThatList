@@ -19,8 +19,12 @@ const App: React.FC = () => {
     ApolloClient<NormalizedCacheObject>
   >(null);
   const [auth, setAuth] = React.useState<Auth>({ token: null, userId: null });
-  const authButNoClient = auth?.token !== null && !client;
-  const noAuthNoClient = auth?.token == null && !client;
+  const [firebaseInitialized, setFirebaseInitialized] = React.useState<boolean>(
+    false
+  );
+
+  const authButNoClient = auth?.token && !client;
+  const noAuthNoClient = !auth?.token && !client;
 
   React.useEffect(() => {
     const loadFonts = async () => {
@@ -41,17 +45,19 @@ const App: React.FC = () => {
           token,
           userId,
         });
+        setFirebaseInitialized(true);
       } else {
         setAuth({
           token: null,
           userId: null,
         });
         setClient(null);
+        setFirebaseInitialized(true);
       }
     });
   }, []);
 
-  if (!fontsLoaded || authButNoClient) {
+  if (!fontsLoaded || authButNoClient || !firebaseInitialized) {
     return <AppLoading />;
   }
 
