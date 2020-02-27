@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Text, View, Button } from 'native-base';
-import { StyleSheet, ActivityIndicator } from 'react-native';
+import { StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import gql from 'graphql-tag';
 import { useMutation } from '@apollo/react-hooks';
 import { AuthContext } from '../common/context';
@@ -37,7 +37,6 @@ export const GET_NEW_INVITES = gql`
     }
   }
 `;
-
 const ACCEPT_INVITATION = gql`
   mutation($inviteId: Int!, $listId: Int!, $userId: String!) {
     update_Invites(
@@ -53,7 +52,6 @@ const ACCEPT_INVITATION = gql`
     }
   }
 `;
-
 const DECLINE_INVITATION = gql`
   mutation($inviteId: Int!) {
     update_Invites(
@@ -63,11 +61,6 @@ const DECLINE_INVITATION = gql`
       returning {
         id
       }
-    }
-    insert_ListAccess(
-      objects: [{ list_id: 50, user_id: "2k4r67wkbtgpj0jzmyz0i7Vfz1M2" }]
-    ) {
-      affected_rows
     }
   }
 `;
@@ -92,6 +85,14 @@ const InviteCard: React.FC<Props> = ({
       error: acceptInvitationError,
     },
   ] = useMutation(ACCEPT_INVITATION);
+  const [
+    declineInvitation,
+    {
+      loading: declineInvitationLoading,
+      data: declineInvitationData,
+      error: declineInvitationError,
+    },
+  ] = useMutation(DECLINE_INVITATION);
 
   const onAcceptInvitation = async () => {
     setAcceptingInvitation(true);
@@ -101,6 +102,25 @@ const InviteCard: React.FC<Props> = ({
         userId: auth.userId,
         listId,
       },
+    });
+  };
+  const onDeclineInvitation = () => {
+    declineInvitation({
+      variables: {
+        inviteId,
+      },
+      optimisticResponse: {
+        __typename: 'mutation_root',
+        update_Invites: {
+          __typename: 'Invites_mutation_response',
+          returning: [
+            {
+              __typename: 'Invites',
+              id: inviteId,
+            },
+          ],
+        },
+      },
       update: (
         proxy,
         {
@@ -109,7 +129,7 @@ const InviteCard: React.FC<Props> = ({
           },
         }
       ) => {
-        const returnedIds = returning.map(returned => returned.id);
+        const returningIds = returning.map(returned => returned.id);
         const { Invites } = proxy.readQuery({
           query: GET_NEW_INVITES,
           variables: {
@@ -122,12 +142,28 @@ const InviteCard: React.FC<Props> = ({
             userId: auth.userId,
           },
           data: {
-            Invites: Invites.filter(invite => !returnedIds.includes(invite.id)),
+            Invites: Invites.filter(
+              invite => !returningIds.includes(invite.id)
+            ),
           },
         });
       },
     });
   };
+
+  if (acceptInvitationError) {
+    Alert.alert(
+      'There was an issue accepting the invitation',
+      JSON.stringify(acceptInvitationError)
+    );
+  }
+
+  if (declineInvitationError) {
+    Alert.alert(
+      'There was an issue declining the invitation',
+      JSON.stringify(declineInvitationError)
+    );
+  }
 
   return (
     <Card style={styles.card}>
@@ -151,7 +187,10 @@ const InviteCard: React.FC<Props> = ({
               <Text>Accept</Text>
             )}
           </Button>
-          <Button style={[styles.inviteButton, styles.declineButton]}>
+          <Button
+            style={[styles.inviteButton, styles.declineButton]}
+            onPress={onDeclineInvitation}
+          >
             <Text>Decline</Text>
           </Button>
         </View>

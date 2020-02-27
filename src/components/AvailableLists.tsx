@@ -100,7 +100,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     loading: getListLoading,
     data: getListData,
     error: getListError,
-    subscribeToMore,
+    subscribeToMore: subscribeToMoreLists,
   } = useQuery(GET_LISTS, {
     variables: {
       userId: auth.userId,
@@ -110,6 +110,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     loading: getInvitesLoading,
     data: getInvitesData,
     error: getInvitesError,
+    refetch: refetchInvites,
   } = useQuery(GET_NEW_INVITES, {
     variables: {
       userId: auth.userId,
@@ -173,7 +174,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
   };
 
   React.useEffect(() => {
-    return subscribeToMore({
+    return subscribeToMoreLists({
       document: GET_LISTS_SUBSCRIPTION,
       variables: {
         userId: auth.userId,
@@ -200,6 +201,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
                 ),
               ]
             : existingItems.filter(item => liveItemIds.includes(item.id));
+        refetchInvites();
         return {
           ...prev,
           Lists: updatedItems,

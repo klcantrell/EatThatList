@@ -351,7 +351,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
         </>
       ) : (
         <>
-          <ListItem itemDivider style={{ height: 80 }} />
+          <ListItem itemDivider style={{ height: 30 }} />
           <ListItem last>
             <Left>
               <Text>Leave list</Text>
