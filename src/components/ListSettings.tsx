@@ -24,10 +24,16 @@ import {
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
 import gql from 'graphql-tag';
-import { useMutation, useApolloClient, useQuery } from '@apollo/react-hooks';
+import {
+  useMutation,
+  useApolloClient,
+  useQuery,
+  useSubscription,
+} from '@apollo/react-hooks';
 import { GET_LISTS } from './AvailableLists';
 import { AppActionsContext, AuthContext } from '../common/context';
 import Invite, { GET_COLLABORATORS } from './Invite';
+import { GET_LISTS_SUBSCRIPTION } from './AvailableLists';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -74,6 +80,41 @@ const ADD_INVITEE = gql`
   }
 `;
 
+const FIND_INVITE = gql`
+  query($listId: Int!, $userId: String!) {
+    Invites(
+      where: {
+        _and: [
+          { list_id: { _eq: 50 } }
+          { invitee: { _eq: "2k4r67wkbtgpj0jzmyz0i7Vfz1M2" } }
+        ]
+      }
+    ) {
+      id
+    }
+  }
+`;
+
+const LEAVE_LIST = gql`
+  mutation($userId: String!, $listId: Int!, $inviteId: Int!) {
+    delete_ListAccess(
+      where: {
+        _and: [{ user_id: { _eq: $userId } }, { list_id: { _eq: $listId } }]
+      }
+    ) {
+      affected_rows
+    }
+    update_Invites(
+      where: { id: { _eq: $inviteId } }
+      _set: { accepted: false }
+    ) {
+      returning {
+        id
+      }
+    }
+  }
+`;
+
 const ListSettings: React.FC<Props> = ({ navigation }) => {
   const { handleSignout } = React.useContext(AppActionsContext);
   const auth = React.useContext(AuthContext);
@@ -83,6 +124,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
   const [findInviteeLoading, setFindInviteeLoading] = React.useState<boolean>(
     false
   );
+  const [leavingList, setLeavingList] = React.useState<boolean>(false);
 
   const listId = navigation.getParam('listId');
   const owner = navigation.getParam('owner');
@@ -97,6 +139,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
     variables: {
       listId,
     },
+    fetchPolicy: 'network-only',
   });
   const [
     deleteList,
@@ -114,6 +157,24 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
       error: addInviteeError,
     },
   ] = useMutation(ADD_INVITEE);
+  const [
+    leaveList,
+    { data: leaveListData, loading: leaveListLoading, error: leaveListError },
+  ] = useMutation(LEAVE_LIST);
+  const { data: getListsSubscriptionData } = useSubscription(
+    GET_LISTS_SUBSCRIPTION,
+    {
+      variables: {
+        userId: auth.userId,
+      },
+    }
+  );
+
+  React.useEffect(() => {
+    if (leavingList && getListsSubscriptionData) {
+      navigation.pop();
+    }
+  }, [leavingList, getListsSubscriptionData]);
 
   const onDeleteList = async () => {
     await deleteList({
@@ -237,6 +298,32 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const onLeaveList = async () => {
+    setLeavingList(true);
+    const {
+      data: findInviteData,
+      errors: findInviteErrors,
+    } = await apolloClient.query({
+      query: FIND_INVITE,
+      variables: {
+        listId,
+        userId: auth.userId,
+      },
+      fetchPolicy: 'no-cache',
+    });
+    if (findInviteErrors || findInviteData.Invites[0].length < 1) {
+      Alert.alert('There was an issue leaving this list, please try again');
+      return findInviteErrors;
+    }
+    return leaveList({
+      variables: {
+        userId: auth.userId,
+        listId,
+        inviteId: findInviteData.Invites[0].id,
+      },
+    });
+  };
+
   const onSignout = () => {
     navigation.dispatch(
       StackActions.reset({
@@ -357,8 +444,14 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
               <Text>Leave list</Text>
             </Left>
             <Right>
-              <Button danger onPress={() => Alert.alert('Byee')}>
-                <Icon name="exit" />
+              <Button danger onPress={onLeaveList}>
+                {leavingList ? (
+                  <ActivityIndicator
+                    style={{ marginRight: 20, marginLeft: 20 }}
+                  />
+                ) : (
+                  <Icon name="exit" />
+                )}
               </Button>
             </Right>
           </ListItem>

@@ -94,9 +94,9 @@ const InviteCard: React.FC<Props> = ({
     },
   ] = useMutation(DECLINE_INVITATION);
 
-  const onAcceptInvitation = async () => {
+  const onAcceptInvitation = () => {
     setAcceptingInvitation(true);
-    await acceptInvitation({
+    acceptInvitation({
       variables: {
         inviteId,
         userId: auth.userId,

@@ -52,7 +52,8 @@ export const GET_LISTS = gql`
     }
   }
 `;
-const GET_LISTS_SUBSCRIPTION = gql`
+
+export const GET_LISTS_SUBSCRIPTION = gql`
   subscription($userId: String!) {
     Lists(
       where: {
@@ -73,6 +74,7 @@ const GET_LISTS_SUBSCRIPTION = gql`
     }
   }
 `;
+
 const ADD_LIST = gql`
   mutation($name: String!, $userId: String!) {
     insert_Lists(objects: [{ name: $name, owner: $userId }]) {

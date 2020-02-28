@@ -33,18 +33,13 @@ export const GET_COLLABORATORS = gql`
   }
 `;
 
-const DELETE_INVITE = gql`
-  mutation($inviteId: Int!) {
+const REMOVE_COLLABORATOR = gql`
+  mutation($inviteId: Int!, $listId: Int!, $userId: String!) {
     delete_Invites(where: { id: { _eq: $inviteId } }) {
       returning {
         id
       }
     }
-  }
-`;
-
-const DELETE_LIST_ACCESS = gql`
-  mutation($listId: Int!, $userId: String!) {
     delete_ListAccess(
       where: {
         _and: [{ list_id: { _eq: $listId } }, { user_id: { _eq: $userId } }]
@@ -67,81 +62,64 @@ const getInviteStatus = (accepted: boolean | null) => {
 
 const Invite: React.FC<Props> = ({ invite }) => {
   const [
-    deleteInvite,
+    removeCollaborator,
     {
-      data: deleteInviteData,
-      loading: deleteInviteLoading,
-      error: deleteInviteError,
+      data: removeCollaboratorData,
+      loading: removeCollaboratorLoading,
+      error: removeCollaboratorError,
     },
-  ] = useMutation(DELETE_INVITE);
-  const [
-    deleteListAccess,
-    {
-      data: deleteListAccessData,
-      loading: deleteListAccessLoading,
-      error: deleteListAccessError,
-    },
-  ] = useMutation(DELETE_LIST_ACCESS);
+  ] = useMutation(REMOVE_COLLABORATOR);
 
-  const onDeleteInvite = async () => {
-    await Promise.all([
-      deleteInvite({
-        variables: {
-          inviteId: invite.id,
-        },
-        optimisticResponse: {
-          __typename: 'mutation_root',
-          delete_Invites: {
-            __typename: 'Invites_mutation_response',
-            returning: {
-              __typename: 'Invites',
-              id: invite.id,
-            },
+  const onDeleteInvite = () => {
+    removeCollaborator({
+      variables: {
+        inviteId: invite.id,
+        listId: invite.list_id,
+        userId: invite.invitee,
+      },
+      optimisticResponse: {
+        __typename: 'mutation_root',
+        delete_Invites: {
+          __typename: 'Invites_mutation_response',
+          returning: {
+            __typename: 'Invites',
+            id: invite.id,
           },
         },
-        update: (
-          proxy,
-          {
-            data: {
-              delete_Invites: { returning },
-            },
-          }
-        ) => {
-          if (!returning.length) {
-            return;
-          }
-          const returnedIds = returning.map(returned => returned.id);
-          const { Invites } = proxy.readQuery({
-            query: GET_COLLABORATORS,
-            variables: {
-              listId: invite.list_id,
-            },
-          });
-          proxy.writeQuery({
-            query: GET_COLLABORATORS,
-            variables: {
-              listId: invite.list_id,
-            },
-            data: {
-              Invites: Invites.filter(
-                invite => !returnedIds.includes(invite.id)
-              ),
-            },
-          });
+        delete_ListAccess: {
+          __typename: 'ListAccess_mutation_response',
+          affected_rows: 1,
         },
-      }),
-      deleteListAccess({
-        variables: {
-          listId: invite.list_id,
-          userId: invite.invitee,
-        },
-      }),
-    ]);
-    if (deleteListAccessError) {
-      Alert.alert(
-        'Something went wrong removing this collaborator, please contact support'
-      );
-    }
+      },
+      update: (
+        proxy,
+        {
+          data: {
+            delete_Invites: { returning },
+          },
+        }
+      ) => {
+        if (!returning.length) {
+          return;
+        }
+        const returnedIds = returning.map(returned => returned.id);
+        const { Invites } = proxy.readQuery({
+          query: GET_COLLABORATORS,
+          variables: {
+            listId: invite.list_id,
+          },
+        });
+        proxy.writeQuery({
+          query: GET_COLLABORATORS,
+          variables: {
+            listId: invite.list_id,
+          },
+          data: {
+            Invites: Invites.filter(invite => !returnedIds.includes(invite.id)),
+          },
+        });
+      },
+    });
   };
 
   const showDeletePrompt = () => {
@@ -155,8 +133,10 @@ const Invite: React.FC<Props> = ({ invite }) => {
     );
   };
 
-  if (deleteInviteError) {
-    Alert.alert('There was a problem deleting the invite, please try again');
+  if (removeCollaboratorError) {
+    Alert.alert(
+      'Something went wrong removing this collaborator, please try again'
+    );
   }
 
   return (
