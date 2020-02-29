@@ -2,9 +2,9 @@ import React from 'react';
 import {
   StyleSheet,
   Alert,
-  ActivityIndicator,
   Keyboard,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import {
   Text,
@@ -20,6 +20,7 @@ import {
   View,
   Item,
   Input,
+  Spinner,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -30,9 +31,9 @@ import {
   useQuery,
   useSubscription,
 } from '@apollo/react-hooks';
-import { GET_LISTS } from './AvailableLists';
 import { AppActionsContext, AuthContext } from '../common/context';
 import Invite, { GET_COLLABORATORS } from './Invite';
+import { GET_LISTS } from './InviteCard';
 import { GET_LISTS_SUBSCRIPTION } from './AvailableLists';
 
 interface Props {
@@ -84,10 +85,7 @@ const FIND_INVITE = gql`
   query($listId: Int!, $userId: String!) {
     Invites(
       where: {
-        _and: [
-          { list_id: { _eq: 50 } }
-          { invitee: { _eq: "2k4r67wkbtgpj0jzmyz0i7Vfz1M2" } }
-        ]
+        _and: [{ list_id: { _eq: $listId } }, { invitee: { _eq: $userId } }]
       }
     ) {
       id
@@ -311,11 +309,11 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
       },
       fetchPolicy: 'no-cache',
     });
-    if (findInviteErrors || findInviteData.Invites[0].length < 1) {
+    if (findInviteErrors || findInviteData?.Invites[0].length < 1) {
       Alert.alert('There was an issue leaving this list, please try again');
       return findInviteErrors;
     }
-    return leaveList({
+    leaveList({
       variables: {
         userId: auth.userId,
         listId,
@@ -340,6 +338,13 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
     ]);
   };
 
+  const showLeavePrompt = () => {
+    Alert.alert('Leave list', 'Are you sure you want to leave this list?', [
+      { text: 'Cancel', style: 'default' },
+      { text: 'Do it', style: 'destructive', onPress: onLeaveList },
+    ]);
+  };
+
   if (getCollaboratorsError) {
     Alert.alert(
       'There was an issue fetching your collaborators, please try again'
@@ -350,6 +355,9 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
   }
   if (addInviteeError) {
     Alert.alert('There was an issue sending the invitation, please try again');
+  }
+  if (leaveListError) {
+    Alert.alert('There was a problem leaving the list, please try again');
   }
 
   return (
@@ -379,16 +387,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
             {getCollaboratorsData?.Invites?.map(invite => (
               <Invite key={invite.id} invite={invite} />
             ))}
-            <ListItem
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-end',
-                height: 55,
-                paddingTop: 0,
-                paddingBottom: 8,
-              }}
-              last
-            >
+            <ListItem style={styles.inputContainer} last>
               <Item style={{ width: '85%' }}>
                 <Input
                   style={{ height: 30 }}
@@ -444,7 +443,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
               <Text>Leave list</Text>
             </Left>
             <Right>
-              <Button danger onPress={onLeaveList}>
+              <Button danger onPress={showLeavePrompt}>
                 {leavingList ? (
                   <ActivityIndicator
                     style={{ marginRight: 20, marginLeft: 20 }}
@@ -467,6 +466,13 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   arrowBack: {
     marginRight: 5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    height: 55,
+    paddingTop: 0,
+    paddingBottom: 8,
   },
 });
 

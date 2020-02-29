@@ -5,6 +5,8 @@ import {
   Keyboard,
   Alert,
   FlatList,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import {
   View,
@@ -25,33 +27,11 @@ import KeyboardInput from './KeyboardInput';
 import ListCard from './ListCard';
 import { AppActionsContext, AuthContext } from '../common/context';
 import InviteCard from './InviteCard';
-import { GET_NEW_INVITES } from './InviteCard';
+import { GET_NEW_INVITES, GET_LISTS } from './InviteCard';
 
 interface Props {
   navigation: NavigationStackProp;
 }
-
-export const GET_LISTS = gql`
-  query($userId: String!) {
-    Lists(
-      where: {
-        _or: [
-          { owner: { _eq: $userId } }
-          { ListAccesses: { user_id: { _eq: $userId } } }
-        ]
-      }
-    ) {
-      id
-      name
-      owner
-      ListItems_aggregate {
-        aggregate {
-          count
-        }
-      }
-    }
-  }
-`;
 
 export const GET_LISTS_SUBSCRIPTION = gql`
   subscription($userId: String!) {
@@ -112,11 +92,11 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     loading: getInvitesLoading,
     data: getInvitesData,
     error: getInvitesError,
-    refetch: refetchInvites,
   } = useQuery(GET_NEW_INVITES, {
     variables: {
       userId: auth.userId,
     },
+    fetchPolicy: 'network-only',
   });
   const [
     addList,
@@ -195,7 +175,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
         const updatedItems =
           existingItems.length <= liveItems.length
             ? [
-                ...existingItems,
+                ...existingItems.filter(item => item.id > 0),
                 ...liveItems.filter(
                   item =>
                     item.owner !== auth.userId &&
@@ -203,7 +183,6 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
                 ),
               ]
             : existingItems.filter(item => liveItemIds.includes(item.id));
-        refetchInvites();
         return {
           ...prev,
           Lists: updatedItems,
@@ -278,8 +257,9 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
         <View style={styles.container}>
           <View style={styles.cardContainer}>
             {getListLoading || getInvitesLoading ? (
-              <Text>Loading lists...</Text>
-            ) : (
+              <ActivityIndicator style={styles.spinner} />
+            ) : getListData?.Lists.length > 0 ||
+              getInvitesData?.Invites.length > 0 ? (
               <FlatList
                 data={[...getListData.Lists, ...getInvitesData.Invites]}
                 renderItem={({ item }) =>
@@ -303,6 +283,10 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
                   String(item.id) + item.owner || item.invitee
                 }
               />
+            ) : (
+              <View style={styles.emptyMessageContainer}>
+                <Text>Create a list...</Text>
+              </View>
             )}
           </View>
           <KeyboardInput
@@ -338,6 +322,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 50,
     right: 50,
+  },
+  spinner: {
+    marginTop: Dimensions.get('screen').height / 4,
+  },
+  emptyMessageContainer: {
+    position: 'absolute',
+    width: '100%',
+    top: Dimensions.get('screen').height / 4,
+    alignItems: 'center',
   },
 });
 

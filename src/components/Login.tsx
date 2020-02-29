@@ -4,10 +4,10 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
-  ActivityIndicator,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
-import { View, Button, Text, Input, Item, Spinner } from 'native-base';
+import { View, Button, Text, Input, Item } from 'native-base';
 import {
   StackActions,
   NavigationScreenProp,

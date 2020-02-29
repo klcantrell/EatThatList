@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Text, View, Button } from 'native-base';
-import { StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { Card, Text, View, Button, List } from 'native-base';
+import { StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import gql from 'graphql-tag';
 import { useMutation } from '@apollo/react-hooks';
 import { AuthContext } from '../common/context';
@@ -32,6 +32,27 @@ export const GET_NEW_INVITES = gql`
         }
         UserOwner {
           email
+        }
+      }
+    }
+  }
+`;
+export const GET_LISTS = gql`
+  query($userId: String!) {
+    Lists(
+      where: {
+        _or: [
+          { owner: { _eq: $userId } }
+          { ListAccesses: { user_id: { _eq: $userId } } }
+        ]
+      }
+    ) {
+      id
+      name
+      owner
+      ListItems_aggregate {
+        aggregate {
+          count
         }
       }
     }
@@ -101,6 +122,66 @@ const InviteCard: React.FC<Props> = ({
         inviteId,
         userId: auth.userId,
         listId,
+      },
+      optimisticResponse: {
+        __typename: 'mutation-root',
+        update_Invites: {
+          __typename: 'Invites_mutation_response',
+          returning: {
+            __typename: 'Invites',
+            id: inviteId,
+          },
+        },
+        insert_ListAccess: {
+          __typename: 'ListAccess_mutation_response',
+          affected_rows: 1,
+        },
+      },
+      update: proxy => {
+        const { Invites } = proxy.readQuery({
+          query: GET_NEW_INVITES,
+          variables: {
+            userId: auth.userId,
+          },
+        });
+        proxy.writeQuery({
+          query: GET_NEW_INVITES,
+          variables: {
+            userId: auth.userId,
+          },
+          data: { Invites: Invites.filter(invite => invite.id !== inviteId) },
+        });
+
+        const { Lists } = proxy.readQuery({
+          query: GET_LISTS,
+          variables: {
+            userId: auth.userId,
+          },
+        });
+        proxy.writeQuery({
+          query: GET_LISTS,
+          variables: {
+            userId: auth.userId,
+          },
+          data: {
+            Lists: [
+              ...Lists,
+              {
+                __typename: 'Lists',
+                id: Math.random() * -10000,
+                name,
+                owner: inviter,
+                ListItems_aggregate: {
+                  __typename: 'ListItems_aggregate',
+                  aggregate: {
+                    __typename: 'ListItems_aggregate_fields',
+                    count: itemCount,
+                  },
+                },
+              },
+            ],
+          },
+        });
       },
     });
   };

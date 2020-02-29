@@ -1,7 +1,13 @@
 import React from 'react';
-import { StyleSheet, Alert } from 'react-native';
 import {
-  Spinner,
+  StyleSheet,
+  Alert,
+  Dimensions,
+  Keyboard,
+  TouchableWithoutFeedback,
+  ActivityIndicator,
+} from 'react-native';
+import {
   Header,
   Title,
   Body,
@@ -278,20 +284,33 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
           </Button>
         </Right>
       </Header>
-      <View style={styles.body}>
-        {getListItemsLoading ? (
-          <Spinner color="pink" style={styles.spinner} />
-        ) : (
-          <>
-            <Posts
-              list={getListItemsData.ListItems}
-              scrollToEnd={itemAdded}
-              handleRemove={onDeleteListItem}
-            />
-            <Poster handleAdd={onAddListItem} />
-          </>
-        )}
-      </View>
+      <TouchableWithoutFeedback
+        onPress={() => {
+          Keyboard.dismiss();
+        }}
+      >
+        <View style={styles.body}>
+          {getListItemsLoading ? (
+            <ActivityIndicator color="pink" style={styles.spinner} />
+          ) : getListItemsData?.ListItems.length > 0 ? (
+            <>
+              <Posts
+                list={getListItemsData.ListItems}
+                scrollToEnd={itemAdded}
+                handleRemove={onDeleteListItem}
+              />
+              <Poster handleAdd={onAddListItem} />
+            </>
+          ) : (
+            <>
+              <View style={styles.emptyMessageContainer}>
+                <Text>Add a thing...</Text>
+              </View>
+              <Poster handleAdd={onAddListItem} />
+            </>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
     </Container>
   );
 };
@@ -312,6 +331,12 @@ const styles = StyleSheet.create({
   },
   arrowBack: {
     marginRight: 5,
+  },
+  emptyMessageContainer: {
+    position: 'absolute',
+    width: '100%',
+    top: Dimensions.get('screen').height / 4,
+    alignItems: 'center',
   },
 });
 
