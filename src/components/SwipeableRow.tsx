@@ -4,10 +4,18 @@ import {
   StyleSheet,
   Dimensions,
   LayoutAnimation,
+  Alert,
 } from 'react-native';
 import { Text } from 'native-base';
 import { RectButton } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import ReAnimated, { Easing } from 'react-native-reanimated';
+import CircularProgressIndicator from './CircularProgressIndicator';
+import { runTiming } from '../common/animations';
+
+const { Clock } = ReAnimated;
+
+const REMOVE_ITEM_TIMEOUT = 3000;
 
 interface Props {
   actionText: string;
@@ -18,7 +26,7 @@ interface Props {
 enum Visibility {
   Visible,
   Removing,
-  Hidden,
+  Removed,
 }
 
 const SwipeableRow: React.FC<Props> = ({
@@ -28,34 +36,37 @@ const SwipeableRow: React.FC<Props> = ({
   id,
 }) => {
   const [visibility, setVisibility] = React.useState(Visibility.Visible);
-  const [countdown, setCountdown] = React.useState(3);
   const swipeableRow = React.useRef<Swipeable>();
-  const intervalId = React.useRef<number>();
+  const timeoutId = React.useRef<number>(null);
   const animatedY = React.useRef<Animated.Value>(new Animated.Value(1));
 
   React.useEffect(() => {
-    if (visibility === Visibility.Removing && countdown === 3) {
-      intervalId.current = setInterval(() => {
-        setCountdown(c => c - 1);
-      }, 1000);
+    if (visibility === Visibility.Removing && !timeoutId.current) {
+      timeoutId.current = setTimeout(() => {
+        clearTimeout(timeoutId.current);
+        timeoutId.current = null;
+        setVisibility(Visibility.Removed);
+        setTimeout(() => {
+          handleRemove(id);
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+        }, 70);
+        Animated.spring(animatedY.current, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }, REMOVE_ITEM_TIMEOUT);
     }
-    if (countdown === 0) {
-      clearInterval(intervalId.current);
-      setVisibility(Visibility.Hidden);
-      setCountdown(3);
-      setTimeout(() => {
-        handleRemove(id);
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
-      }, 70);
-      Animated.spring(animatedY.current, {
-        toValue: 0,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visibility, countdown]);
+  }, [visibility]);
 
   const onSwipeLeft = () => {
     setVisibility(Visibility.Removing);
+  };
+
+  const cancelRemove = () => {
+    clearTimeout(timeoutId.current);
+    timeoutId.current = null;
+    setVisibility(Visibility.Visible);
+    swipeableRow.current.close();
   };
 
   const renderLeftActions = progress => {
@@ -63,6 +74,13 @@ const SwipeableRow: React.FC<Props> = ({
       inputRange: [0, 1],
       outputRange: [-Dimensions.get('screen').width, 0],
     });
+    const circularProgress = runTiming(
+      REMOVE_ITEM_TIMEOUT,
+      new Clock(),
+      0,
+      1,
+      Easing.linear
+    );
     return (
       <Animated.View
         style={{
@@ -70,9 +88,9 @@ const SwipeableRow: React.FC<Props> = ({
           transform: [{ translateX: trans }, { scaleY: animatedY.current }],
         }}
       >
-        <RectButton style={styles.leftAction}>
+        <RectButton style={styles.leftAction} onPress={cancelRemove}>
           {visibility === Visibility.Removing && (
-            <Text style={styles.countdownText}>{countdown}</Text>
+            <CircularProgressIndicator progress={circularProgress} />
           )}
           <Text style={styles.actionText}>{actionText}</Text>
         </RectButton>
@@ -100,7 +118,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     backgroundColor: '#C97AFC',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   countdownText: {
@@ -111,13 +129,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     padding: 10,
-    position: 'absolute',
-    right: 0,
-  },
-  rightAction: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
+    marginLeft: 10,
   },
 });
 
