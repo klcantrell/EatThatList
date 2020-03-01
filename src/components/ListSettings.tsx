@@ -366,7 +366,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
         <Left>
           <Button transparent onPress={() => navigation.pop()}>
             <Icon name="arrow-back" style={styles.arrowBack} />
-            <Text>Your lists</Text>
+            <Text style={{ color: '#470FF4' }}>Your lists</Text>
           </Button>
         </Left>
         <Body>
@@ -374,7 +374,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
         </Body>
         <Right>
           <Button transparent onPress={() => handleSignout(onSignout)}>
-            <Text>Logout</Text>
+            <Text style={{ color: '#470FF4' }}>Logout</Text>
           </Button>
         </Right>
       </Header>
@@ -386,7 +386,11 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
             </ListItem>
             {getCollaboratorsData?.Invites?.map(invite => (
               <Invite key={invite.id} invite={invite} />
-            ))}
+            )) || (
+              <ListItem style={{ justifyContent: 'center' }}>
+                <ActivityIndicator />
+              </ListItem>
+            )}
             <ListItem style={styles.inputContainer} last>
               <Item style={{ width: '85%' }}>
                 <Input
@@ -465,6 +469,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   arrowBack: {
+    color: '#470FF4',
     marginRight: 5,
   },
   inputContainer: {

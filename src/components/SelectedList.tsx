@@ -83,6 +83,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
   const auth = React.useContext(AuthContext);
   const [itemAdded, setItemAdded] = React.useState<boolean>(false);
   const listId = navigation.getParam('listId');
+  const listName = navigation.getParam('name');
 
   const {
     error: getListItemsError,
@@ -272,15 +273,15 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
         <Left>
           <Button transparent onPress={() => navigation.pop()}>
             <Icon name="arrow-back" style={styles.arrowBack} />
-            <Text>Your lists</Text>
+            <Text style={{ color: '#470FF4' }}>Your lists</Text>
           </Button>
         </Left>
         <Body>
-          <Title>List</Title>
+          <Title>{listName}</Title>
         </Body>
         <Right>
           <Button transparent onPress={() => handleSignout(onSignout)}>
-            <Text>Logout</Text>
+            <Text style={{ color: '#470FF4' }}>Logout</Text>
           </Button>
         </Right>
       </Header>
@@ -330,6 +331,7 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -10 }],
   },
   arrowBack: {
+    color: '#470FF4',
     marginRight: 5,
   },
   emptyMessageContainer: {

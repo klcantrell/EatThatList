@@ -29,7 +29,7 @@ const CircularProgressIndicator: React.FC<Props> = ({
   return (
     <Svg width={size} height={size} style={style}>
       <AnimatedCircle
-        stroke="orange"
+        stroke="#CEBBC9"
         fill="none"
         cx={size / 2}
         cy={size / 2}

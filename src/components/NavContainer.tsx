@@ -10,23 +10,29 @@ import SelectedList from './SelectedList';
 import AvailableLists from './AvailableLists';
 import ListSettings from './ListSettings';
 
+const TabButton: React.FC<{
+  text: string;
+  focused: boolean;
+  iconName: string;
+}> = ({ text, focused, iconName }) => (
+  <View style={styles.tab}>
+    <Icon
+      style={[styles.icon, { color: focused ? '#470FF4' : 'black' }]}
+      name={iconName}
+    />
+    <Text style={[styles.label, { color: focused ? '#470FF4' : 'black' }]}>
+      {text}
+    </Text>
+  </View>
+);
+
 const SelectedListWithSettings = createBottomTabNavigator(
   {
     List: {
       screen: SelectedList,
       navigationOptions: {
         tabBarLabel: ({ focused }) => (
-          <View style={styles.tab}>
-            <Icon
-              style={[styles.icon, { color: focused ? 'purple' : 'black' }]}
-              name="list"
-            />
-            <Text
-              style={[styles.label, { color: focused ? 'purple' : 'black' }]}
-            >
-              List
-            </Text>
-          </View>
+          <TabButton text="List" focused={focused} iconName="list" />
         ),
       },
     },
@@ -34,17 +40,7 @@ const SelectedListWithSettings = createBottomTabNavigator(
       screen: ListSettings,
       navigationOptions: {
         tabBarLabel: ({ focused }) => (
-          <View style={styles.tab}>
-            <Icon
-              style={[styles.icon, { color: focused ? 'purple' : 'black' }]}
-              name="cog"
-            />
-            <Text
-              style={[styles.label, { color: focused ? 'purple' : 'black' }]}
-            >
-              Settings
-            </Text>
-          </View>
+          <TabButton text="Settings" focused={focused} iconName="cog" />
         ),
       },
     },

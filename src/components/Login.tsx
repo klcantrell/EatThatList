@@ -55,13 +55,14 @@ const Login: React.FC<Props> = ({ navigation }) => {
   }, [auth]);
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
         <View style={styles.content}>
           <Item style={styles.loginInput}>
             <Input
               placeholder="email"
+              keyboardAppearance="dark"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
@@ -72,6 +73,7 @@ const Login: React.FC<Props> = ({ navigation }) => {
           <Item style={styles.loginInput}>
             <Input
               placeholder="password"
+              keyboardAppearance="dark"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -82,7 +84,6 @@ const Login: React.FC<Props> = ({ navigation }) => {
           </Item>
           <View style={styles.loginActions}>
             <Button
-              rounded
               style={[styles.loginActionsButton, styles.signInButton]}
               onPress={() => {
                 setLoggingIn(true);
@@ -95,7 +96,11 @@ const Login: React.FC<Props> = ({ navigation }) => {
                   });
               }}
             >
-              {loggingIn ? <ActivityIndicator /> : <Text>Sign in</Text>}
+              {loggingIn ? (
+                <ActivityIndicator />
+              ) : (
+                <Text style={{ fontSize: 20 }}>Sign in</Text>
+              )}
             </Button>
             <Button
               rounded
@@ -114,13 +119,13 @@ const Login: React.FC<Props> = ({ navigation }) => {
               {creatingAccount ? (
                 <ActivityIndicator />
               ) : (
-                <Text>Create an account</Text>
+                <Text style={{ fontSize: 18 }}>Create an account</Text>
               )}
             </Button>
           </View>
         </View>
-      </TouchableWithoutFeedback>
-    </View>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -132,13 +137,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
     alignItems: 'center',
+    backgroundColor: '#CE6D8B',
   },
   content: {
     position: 'relative',
     top: -100,
   },
   loginInput: {
-    backgroundColor: 'white',
+    backgroundColor: '#eee',
     borderWidth: 2,
     width: '85%',
     marginBottom: 20,
@@ -153,9 +159,11 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     minWidth: 100,
+    color: '#CEBBC9',
+    backgroundColor: 'transparent',
   },
   createAccountButton: {
-    backgroundColor: 'deeppink',
+    backgroundColor: '#4056F4',
     minWidth: 170,
   },
   spinner: {

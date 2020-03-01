@@ -4,7 +4,6 @@ import {
   StyleSheet,
   Dimensions,
   LayoutAnimation,
-  Alert,
 } from 'react-native';
 import { Text } from 'native-base';
 import { RectButton } from 'react-native-gesture-handler';
@@ -105,6 +104,7 @@ const SwipeableRow: React.FC<Props> = ({
       leftThreshold={30}
       renderLeftActions={renderLeftActions}
       onSwipeableLeftOpen={onSwipeLeft}
+      onSwipeableClose={cancelRemove}
     >
       <Animated.View style={{ transform: [{ scaleY: animatedY.current }] }}>
         {children}
@@ -117,13 +117,9 @@ const styles = StyleSheet.create({
   leftAction: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#C97AFC',
+    backgroundColor: '#CE6D8B',
     justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  countdownText: {
-    color: 'white',
-    fontSize: 30,
   },
   actionText: {
     color: 'white',

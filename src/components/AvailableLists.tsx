@@ -17,6 +17,7 @@ import {
   Right,
   Body,
   Title,
+  Container,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -153,6 +154,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
         });
       },
     });
+    Keyboard.dismiss();
   };
 
   React.useEffect(() => {
@@ -204,12 +206,13 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
     setShowKeyboard(false);
     setInputValue('');
   };
-  const onSelectList = (listId: number, owner: string) => {
+  const onSelectList = (listId: number, owner: string, name: string) => {
     navigation.navigate({
       routeName: 'SelectedList',
       params: {
         listId,
         owner,
+        name,
       },
     });
   };
@@ -236,15 +239,15 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
   }
 
   return (
-    <>
+    <Container>
       <Header>
         <Left />
         <Body>
-          <Title>Your lists</Title>
+          <Title>Eat That List</Title>
         </Body>
         <Right>
           <Button transparent onPress={() => handleSignout(onSignout)}>
-            <Text>Logout</Text>
+            <Text style={{ color: '#470FF4' }}>Logout</Text>
           </Button>
         </Right>
       </Header>
@@ -267,7 +270,9 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
                     <ListCard
                       itemCount={item.ListItems_aggregate.aggregate.count}
                       name={item.name}
-                      onPress={() => onSelectList(item.id, item.owner)}
+                      onPress={() =>
+                        onSelectList(item.id, item.owner, item.name)
+                      }
                     />
                   ) : (
                     <InviteCard
@@ -299,14 +304,14 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
             onBlur={hideKeyboardAndClear}
           />
           <Fab
-            color="red"
-            icon="flame"
+            color="#4056F4"
+            icon="ice-cream"
             onPress={toggleShowDialog}
             style={styles.fabBtn}
           />
         </View>
       </TouchableWithoutFeedback>
-    </>
+    </Container>
   );
 };
 

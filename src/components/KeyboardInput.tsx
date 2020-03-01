@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  KeyboardAvoidingView,
-  ViewStyle,
-  Keyboard,
-  StyleSheet,
-} from 'react-native';
+import { KeyboardAvoidingView, ViewStyle, StyleSheet } from 'react-native';
 import { Button, Text, Item, Input } from 'native-base';
 import Animated, { Easing } from 'react-native-reanimated';
 import { usePrevious } from '../common/hooks';
@@ -109,7 +104,6 @@ const KeyboardInput: React.FC<Props> = ({
           style={styles.addBtn}
           onPress={() => {
             onAdd();
-            Keyboard.dismiss();
           }}
         >
           <Text>Add</Text>
@@ -138,6 +132,7 @@ const styles = StyleSheet.create({
     height: '90%',
     borderRadius: 8,
     margin: 2,
+    backgroundColor: '#470FF4',
   },
   inputGroup: {
     flexGrow: 1,

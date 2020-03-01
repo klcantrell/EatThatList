@@ -29,7 +29,7 @@ const Poster: React.FC<Props> = ({ handleAdd }) => {
         onReturn={() => setInputValue('')}
       />
       <Fab
-        color="red"
+        color="#4056F4"
         icon="flame"
         onPress={toggleInput}
         style={styles.fabBtn}
