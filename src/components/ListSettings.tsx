@@ -362,19 +362,18 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header>
+      <Header style={styles.header}>
         <Left>
           <Button transparent onPress={() => navigation.pop()}>
             <Icon name="arrow-back" style={styles.arrowBack} />
-            <Text style={{ color: '#470FF4' }}>Your lists</Text>
           </Button>
         </Left>
         <Body>
-          <Title>List Settings</Title>
+          <Title style={styles.titleText}>List Settings</Title>
         </Body>
         <Right>
           <Button transparent onPress={() => handleSignout(onSignout)}>
-            <Text style={{ color: '#470FF4' }}>Logout</Text>
+            <Text style={{ color: '#eee' }}>Logout</Text>
           </Button>
         </Right>
       </Header>
@@ -468,9 +467,16 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    backgroundColor: '#CE6D8B',
+  },
+  titleText: {
+    color: '#fff',
+    fontSize: 20,
+  },
   arrowBack: {
-    color: '#470FF4',
-    marginRight: 5,
+    color: '#eee',
+    marginLeft: 10,
   },
   inputContainer: {
     flexDirection: 'row',

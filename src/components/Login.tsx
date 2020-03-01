@@ -57,7 +57,7 @@ const Login: React.FC<Props> = ({ navigation }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
         <View style={styles.content}>
           <Item style={styles.loginInput}>
             <Input
@@ -159,7 +159,6 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     minWidth: 100,
-    color: '#CEBBC9',
     backgroundColor: 'transparent',
   },
   createAccountButton: {

@@ -59,7 +59,7 @@ const KeyboardInput: React.FC<Props> = ({
     <KeyboardAvoidingView
       style={styles.keyboardView}
       behavior="position"
-      pointerEvents="box-none"
+      pointerEvents={visible ? 'auto' : 'none'}
       keyboardVerticalOffset={87}
     >
       <Animated.View
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   form: {
     transform: [{ translateX: INPUT_HIDDEN_OFFSET }],
     margin: 1,
-    backgroundColor: '#dbdbdb',
+    backgroundColor: '#eee',
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: 8,

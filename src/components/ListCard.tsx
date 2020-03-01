@@ -28,13 +28,14 @@ const styles = StyleSheet.create({
     height: 175,
     marginLeft: 10,
     marginRight: 10,
+    backgroundColor: '#eee',
   },
   title: {
     fontSize: 26,
   },
   titleContainer: {
     borderBottomColor: 'lightgrey',
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     width: '40%',
     justifyContent: 'center',
     flexDirection: 'row',

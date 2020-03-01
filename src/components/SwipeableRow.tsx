@@ -61,11 +61,11 @@ const SwipeableRow: React.FC<Props> = ({
     setVisibility(Visibility.Removing);
   };
 
-  const cancelRemove = () => {
+  const cancelRemove = (callback: () => void = () => {}) => {
     clearTimeout(timeoutId.current);
     timeoutId.current = null;
     setVisibility(Visibility.Visible);
-    swipeableRow.current.close();
+    callback();
   };
 
   const renderLeftActions = progress => {
@@ -87,7 +87,10 @@ const SwipeableRow: React.FC<Props> = ({
           transform: [{ translateX: trans }, { scaleY: animatedY.current }],
         }}
       >
-        <RectButton style={styles.leftAction} onPress={cancelRemove}>
+        <RectButton
+          style={styles.leftAction}
+          onPress={() => cancelRemove(swipeableRow.current.close)}
+        >
           {visibility === Visibility.Removing && (
             <CircularProgressIndicator progress={circularProgress} />
           )}
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
   leftAction: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#CE6D8B',
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
     alignItems: 'center',
   },

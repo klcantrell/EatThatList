@@ -29,7 +29,7 @@ const Posts: React.FC<Props> = ({ list, scrollToEnd, handleRemove }) => {
           id={item.id}
         >
           <ListItem>
-            <Text>{item.description}</Text>
+            <Text style={styles.listItemText}>{item.description}</Text>
           </ListItem>
         </SwipeableRow>
       )}
@@ -46,7 +46,16 @@ const Posts: React.FC<Props> = ({ list, scrollToEnd, handleRemove }) => {
 
 const styles = StyleSheet.create({
   list: {
-    marginBottom: 80,
+    paddingBottom: 80,
+    borderColor: '#eee',
+    borderWidth: 1,
+    borderTopEndRadius: 20,
+    borderTopLeftRadius: 20,
+    borderBottomWidth: 0,
+  },
+  listItemText: {
+    fontWeight: '600',
+    fontSize: 18,
   },
 });
 

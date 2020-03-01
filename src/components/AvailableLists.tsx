@@ -7,6 +7,7 @@ import {
   FlatList,
   Dimensions,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import {
   View,
@@ -15,7 +16,6 @@ import {
   Header,
   Left,
   Right,
-  Body,
   Title,
   Container,
 } from 'native-base';
@@ -240,14 +240,14 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
 
   return (
     <Container>
-      <Header>
-        <Left />
-        <Body>
-          <Title>Eat That List</Title>
-        </Body>
+      <StatusBar barStyle="light-content" />
+      <Header style={styles.header}>
+        <Left>
+          <Title style={styles.titleText}>Eat That List</Title>
+        </Left>
         <Right>
           <Button transparent onPress={() => handleSignout(onSignout)}>
-            <Text style={{ color: '#470FF4' }}>Logout</Text>
+            <Text style={{ color: '#eee' }}>Logout</Text>
           </Button>
         </Right>
       </Header>
@@ -319,6 +319,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'flex-end',
+    backgroundColor: '#CE6D8B',
+  },
+  header: {
+    backgroundColor: '#CE6D8B',
+  },
+  titleText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '900',
   },
   cardContainer: {
     flex: 1,

@@ -17,10 +17,10 @@ const TabButton: React.FC<{
 }> = ({ text, focused, iconName }) => (
   <View style={styles.tab}>
     <Icon
-      style={[styles.icon, { color: focused ? '#470FF4' : 'black' }]}
+      style={[styles.icon, { color: focused ? '#CE6D8B' : 'black' }]}
       name={iconName}
     />
-    <Text style={[styles.label, { color: focused ? '#470FF4' : 'black' }]}>
+    <Text style={[styles.label, { color: focused ? '#CE6D8B' : 'black' }]}>
       {text}
     </Text>
   </View>
