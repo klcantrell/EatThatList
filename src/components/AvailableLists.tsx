@@ -16,7 +16,6 @@ import {
   Header,
   Left,
   Right,
-  Title,
   Container,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
@@ -29,6 +28,7 @@ import ListCard from './ListCard';
 import { AppActionsContext, AuthContext } from '../common/context';
 import InviteCard from './InviteCard';
 import { GET_NEW_INVITES, GET_LISTS } from './InviteCard';
+import Logo from './Logo';
 
 interface Props {
   navigation: NavigationStackProp;
@@ -243,7 +243,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       <StatusBar barStyle="light-content" />
       <Header style={styles.header}>
         <Left>
-          <Title style={styles.titleText}>Eat That List</Title>
+          <Logo scale={0.5} color="#fff" />
         </Left>
         <Right>
           <Button transparent onPress={() => handleSignout(onSignout)}>

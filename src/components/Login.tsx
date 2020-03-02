@@ -15,6 +15,7 @@ import {
 } from 'react-navigation';
 import firebase from 'firebase/app';
 import { AuthContext } from '../common/context';
+import Logo from './Logo';
 
 interface Props {
   navigation: NavigationScreenProp<{}>;
@@ -58,6 +59,10 @@ const Login: React.FC<Props> = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
+        <View style={styles.logo}>
+          <Logo />
+          <Text style={styles.logoText}>at That List</Text>
+        </View>
         <View style={styles.content}>
           <Item style={styles.loginInput}>
             <Input
@@ -138,6 +143,16 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     backgroundColor: '#CE6D8B',
+  },
+  logo: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 100,
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 25,
+    fontWeight: '900',
   },
   content: {
     position: 'relative',
