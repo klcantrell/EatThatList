@@ -125,11 +125,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionText: {
-    color: 'white',
+    color: '#444',
     fontSize: 16,
     padding: 10,
     marginLeft: 10,
   },
 });
 
-export default SwipeableRow;
+const areEqual = (prevProps, nextProps) => prevProps.id === nextProps.id;
+
+export default React.memo(SwipeableRow, areEqual);

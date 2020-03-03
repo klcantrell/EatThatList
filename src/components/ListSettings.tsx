@@ -425,7 +425,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
             </ListItem>
           </View>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <ListItem itemDivider style={{ height: 80 }} />
+            <ListItem itemDivider style={styles.ownerDivider} />
           </TouchableWithoutFeedback>
           <ListItem last>
             <Left>
@@ -440,7 +440,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
         </>
       ) : (
         <>
-          <ListItem itemDivider style={{ height: 30 }} />
+          <ListItem itemDivider style={styles.collaboratorDivider} />
           <ListItem last>
             <Left>
               <Text>Leave list</Text>
@@ -460,7 +460,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
         </>
       )}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ListItem itemDivider style={{ height: '100%' }} />
+        <ListItem itemDivider style={styles.bottomSpacer} />
       </TouchableWithoutFeedback>
     </Container>
   );
@@ -469,6 +469,18 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#CE6D8B',
+  },
+  ownerDivider: {
+    height: 80,
+    backgroundColor: '#f8ecf0',
+  },
+  collaboratorDivider: {
+    height: 30,
+    backgroundColor: '#f8ecf0',
+  },
+  bottomSpacer: {
+    height: '100%',
+    backgroundColor: '#f8ecf0',
   },
   titleText: {
     color: '#fff',

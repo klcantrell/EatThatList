@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#CE6D8B',
+    backgroundColor: '#f8ecf0',
   },
   spinner: {
     marginBottom: 100,

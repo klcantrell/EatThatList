@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   form: {
     transform: [{ translateX: INPUT_HIDDEN_OFFSET }],
     margin: 1,
-    backgroundColor: '#eee',
+    backgroundColor: '#bfbfbf',
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderRadius: 8,
