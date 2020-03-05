@@ -450,6 +450,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
               <Button danger onPress={showLeavePrompt}>
                 {leavingList ? (
                   <ActivityIndicator
+                    color="#fff"
                     style={{ marginRight: 20, marginLeft: 20 }}
                   />
                 ) : (

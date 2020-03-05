@@ -265,7 +265,11 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
           >
             <View style={styles.cardContainer}>
               {getListLoading || getInvitesLoading ? (
-                <ActivityIndicator style={styles.spinner} />
+                <ActivityIndicator
+                  size="large"
+                  color="#fff"
+                  style={styles.spinner}
+                />
               ) : getListData?.Lists.length > 0 ||
                 getInvitesData?.Invites.length > 0 ? (
                 <FlatList
