@@ -18,6 +18,7 @@ import {
   Right,
   Container,
 } from 'native-base';
+import { LinearGradient } from 'expo-linear-gradient';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useQuery, useMutation } from '@apollo/react-hooks';
@@ -240,7 +241,6 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
 
   return (
     <Container>
-      <StatusBar barStyle="light-content" />
       <Header style={styles.header}>
         <Left>
           <Logo scale={0.5} color="#fff" />
@@ -258,57 +258,65 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
         }}
       >
         <View style={styles.container}>
-          <View style={styles.cardContainer}>
-            {getListLoading || getInvitesLoading ? (
-              <ActivityIndicator style={styles.spinner} />
-            ) : getListData?.Lists.length > 0 ||
-              getInvitesData?.Invites.length > 0 ? (
-              <FlatList
-                data={[...getListData.Lists, ...getInvitesData.Invites]}
-                renderItem={({ item }) =>
-                  item.owner ? (
-                    <ListCard
-                      itemCount={item.ListItems_aggregate.aggregate.count}
-                      name={item.name}
-                      onPress={() =>
-                        onSelectList(item.id, item.owner, item.name)
-                      }
-                    />
-                  ) : (
-                    <InviteCard
-                      inviteId={item.id}
-                      listId={item.List.id}
-                      name={item.List.name}
-                      inviter={item.List.UserOwner.email}
-                      itemCount={item.List.ListItems_aggregate.aggregate.count}
-                    />
-                  )
-                }
-                keyExtractor={item =>
-                  String(item.id) + item.owner || item.invitee
-                }
-              />
-            ) : (
-              <View style={styles.emptyMessageContainer}>
-                <Text>Create a list...</Text>
-              </View>
-            )}
-          </View>
-          <KeyboardInput
-            placeholder="List"
-            value={inputValue}
-            visible={showKeyboard}
-            onChange={setInputValue}
-            onAdd={onAddList}
-            onReturn={hideKeyboardAndClear}
-            onBlur={hideKeyboardAndClear}
-          />
-          <Fab
-            color="#4056F4"
-            icon="ice-cream"
-            onPress={toggleShowDialog}
-            style={styles.fabBtn}
-          />
+          <StatusBar barStyle="light-content" />
+          <LinearGradient
+            colors={['#CE6D8B', '#d47d99', '#d98ca6', '#da90a9', '#df9fb4']}
+            style={styles.linearGradient}
+          >
+            <View style={styles.cardContainer}>
+              {getListLoading || getInvitesLoading ? (
+                <ActivityIndicator style={styles.spinner} />
+              ) : getListData?.Lists.length > 0 ||
+                getInvitesData?.Invites.length > 0 ? (
+                <FlatList
+                  data={[...getListData.Lists, ...getInvitesData.Invites]}
+                  renderItem={({ item }) =>
+                    item.owner ? (
+                      <ListCard
+                        itemCount={item.ListItems_aggregate.aggregate.count}
+                        name={item.name}
+                        onPress={() =>
+                          onSelectList(item.id, item.owner, item.name)
+                        }
+                      />
+                    ) : (
+                      <InviteCard
+                        inviteId={item.id}
+                        listId={item.List.id}
+                        name={item.List.name}
+                        inviter={item.List.UserOwner.email}
+                        itemCount={
+                          item.List.ListItems_aggregate.aggregate.count
+                        }
+                      />
+                    )
+                  }
+                  keyExtractor={item =>
+                    String(item.id) + item.owner || item.invitee
+                  }
+                />
+              ) : (
+                <View style={styles.emptyMessageContainer}>
+                  <Text>Create a list...</Text>
+                </View>
+              )}
+            </View>
+            <KeyboardInput
+              placeholder="List"
+              value={inputValue}
+              visible={showKeyboard}
+              onChange={setInputValue}
+              onAdd={onAddList}
+              onReturn={hideKeyboardAndClear}
+              onBlur={hideKeyboardAndClear}
+            />
+            <Fab
+              color="#4056F4"
+              icon="ice-cream"
+              onPress={toggleShowDialog}
+              style={styles.fabBtn}
+            />
+          </LinearGradient>
         </View>
       </TouchableWithoutFeedback>
     </Container>
@@ -318,8 +326,10 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  linearGradient: {
+    flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: '#CE6D8B',
   },
   header: {
     backgroundColor: '#CE6D8B',

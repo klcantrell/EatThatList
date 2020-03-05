@@ -5,6 +5,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import {
   Text,
@@ -20,7 +21,6 @@ import {
   View,
   Item,
   Input,
-  Spinner,
 } from 'native-base';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
@@ -379,6 +379,7 @@ const ListSettings: React.FC<Props> = ({ navigation }) => {
       </Header>
       {owner === auth.userId ? (
         <>
+          <StatusBar barStyle="light-content" />
           <View>
             <ListItem itemHeader first>
               <Text>COLLABORATORS</Text>

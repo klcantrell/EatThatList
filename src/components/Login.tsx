@@ -13,6 +13,7 @@ import {
   NavigationScreenProp,
   NavigationActions,
 } from 'react-navigation';
+import { LinearGradient } from 'expo-linear-gradient';
 import firebase from 'firebase/app';
 import { AuthContext } from '../common/context';
 import Logo from './Logo';
@@ -59,76 +60,81 @@ const Login: React.FC<Props> = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <View style={styles.logo}>
-          <Logo />
-          <Text style={styles.logoText}>at That List</Text>
-        </View>
-        <View style={styles.content}>
-          <Item style={styles.loginInput}>
-            <Input
-              placeholder="email"
-              keyboardAppearance="dark"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              autoCompleteType="off"
-              ref={usernameInput}
-            />
-          </Item>
-          <Item style={styles.loginInput}>
-            <Input
-              placeholder="password"
-              keyboardAppearance="dark"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCompleteType="off"
-              ref={passwordInput}
-            />
-          </Item>
-          <View style={styles.loginActions}>
-            <Button
-              style={[styles.loginActionsButton, styles.signInButton]}
-              onPress={() => {
-                setLoggingIn(true);
-                firebase
-                  .auth()
-                  .signInWithEmailAndPassword(username, password)
-                  .catch(err => {
-                    reset();
-                    Alert.alert(JSON.stringify(err, null, 2));
-                  });
-              }}
-            >
-              {loggingIn ? (
-                <ActivityIndicator />
-              ) : (
-                <Text style={{ fontSize: 20 }}>Sign in</Text>
-              )}
-            </Button>
-            <Button
-              rounded
-              style={[styles.loginActionsButton, styles.createAccountButton]}
-              onPress={() => {
-                setCreatingAccount(true);
-                firebase
-                  .auth()
-                  .createUserWithEmailAndPassword(username, password)
-                  .catch(err => {
-                    reset();
-                    Alert.alert(JSON.stringify(err, null, 2));
-                  });
-              }}
-            >
-              {creatingAccount ? (
-                <ActivityIndicator />
-              ) : (
-                <Text style={{ fontSize: 18 }}>Create an account</Text>
-              )}
-            </Button>
+        <LinearGradient
+          colors={['#CE6D8B', '#d47d99', '#d98ca6', '#da90a9', '#df9fb4']}
+          style={styles.linearGradient}
+        >
+          <View style={styles.logo}>
+            <Logo color="#fff" />
+            <Text style={styles.logoText}>at That List</Text>
           </View>
-        </View>
+          <View style={styles.content}>
+            <Item style={styles.loginInput}>
+              <Input
+                placeholder="email"
+                keyboardAppearance="dark"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCompleteType="off"
+                ref={usernameInput}
+              />
+            </Item>
+            <Item style={styles.loginInput}>
+              <Input
+                placeholder="password"
+                keyboardAppearance="dark"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                autoCompleteType="off"
+                ref={passwordInput}
+              />
+            </Item>
+            <View style={styles.loginActions}>
+              <Button
+                style={[styles.loginActionsButton, styles.signInButton]}
+                onPress={() => {
+                  setLoggingIn(true);
+                  firebase
+                    .auth()
+                    .signInWithEmailAndPassword(username, password)
+                    .catch(err => {
+                      reset();
+                      Alert.alert(JSON.stringify(err, null, 2));
+                    });
+                }}
+              >
+                {loggingIn ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text style={{ fontSize: 20 }}>Sign in</Text>
+                )}
+              </Button>
+              <Button
+                rounded
+                style={[styles.loginActionsButton, styles.createAccountButton]}
+                onPress={() => {
+                  setCreatingAccount(true);
+                  firebase
+                    .auth()
+                    .createUserWithEmailAndPassword(username, password)
+                    .catch(err => {
+                      reset();
+                      Alert.alert(JSON.stringify(err, null, 2));
+                    });
+                }}
+              >
+                {creatingAccount ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text style={{ fontSize: 18 }}>Create an account</Text>
+                )}
+              </Button>
+            </View>
+          </View>
+        </LinearGradient>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -139,10 +145,13 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  linearGradient: {
+    alignItems: 'center',
+    borderRadius: 5,
+    flex: 1,
     justifyContent: 'center',
     flexDirection: 'column',
-    alignItems: 'center',
-    backgroundColor: '#CE6D8B',
   },
   logo: {
     flexDirection: 'row',

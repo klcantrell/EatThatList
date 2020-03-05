@@ -261,7 +261,10 @@ const InviteCard: React.FC<Props> = ({
           style={styles.inviteMessage}
         >{`Accept invite from ${inviter}?`}</Text>
         <View style={styles.inviteButtons}>
-          <Button style={styles.inviteButton} onPress={onAcceptInvitation}>
+          <Button
+            style={[styles.inviteButton, styles.acceptButton]}
+            onPress={onAcceptInvitation}
+          >
             {acceptingInvitation ? (
               <ActivityIndicator style={{ marginRight: 20, marginLeft: 20 }} />
             ) : (
@@ -269,7 +272,8 @@ const InviteCard: React.FC<Props> = ({
             )}
           </Button>
           <Button
-            style={[styles.inviteButton, styles.declineButton]}
+            danger
+            style={styles.inviteButton}
             onPress={onDeclineInvitation}
           >
             <Text>Decline</Text>
@@ -326,8 +330,8 @@ const styles = StyleSheet.create({
   inviteButton: {
     margin: 5,
   },
-  declineButton: {
-    backgroundColor: '#ff8e2b',
+  acceptButton: {
+    backgroundColor: '#470FF4',
   },
 });
 

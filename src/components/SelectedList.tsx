@@ -6,6 +6,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import {
   Header,
@@ -290,6 +291,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
         }}
       >
         <View style={styles.body}>
+          <StatusBar barStyle="light-content" />
           {getListItemsLoading ? (
             <ActivityIndicator color="pink" style={styles.spinner} />
           ) : getListItemsData?.ListItems.length > 0 ? (
