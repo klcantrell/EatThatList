@@ -4,7 +4,7 @@
     "slug": "EatThatList",
     "privacy": "public",
     "sdkVersion": "36.0.0",
-    "platforms": ["ios", "android", "web"],
+    "platforms": ["ios"],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,7 +18,8 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.klcantrell.eatthatlist",
+      "buildNumber": "1.0.0"
     }
   }
 }
