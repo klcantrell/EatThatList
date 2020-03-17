@@ -19,7 +19,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "bundleIdentifier": "com.klcantrell.eatthatlist",
-      "buildNumber": "1.0.0"
+      "buildNumber": "1.0.6"
     }
   }
 }
