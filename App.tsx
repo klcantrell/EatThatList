@@ -6,7 +6,7 @@ import { AppLoading } from 'expo';
 import { loadAsync as loadFontAsync } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import firebase from 'firebase/app';
-import { AuthContextProvider, Auth } from './src/common/context';
+import { AppActionsProvider, AuthProvider, Auth } from './src/common/context';
 import { setupFirebase } from './src/services/firebase';
 import { createGraphqlClient } from './src/services/apollo';
 import NavContainer from './src/components/NavContainer';
@@ -36,16 +36,53 @@ const App: React.FC = () => {
     };
     loadFonts();
     setFontsLoaded(true);
-    return firebase.auth().onAuthStateChanged(async user => {
+    const unsubscribeFromFirebaseAuth = firebase.auth().onAuthStateChanged(async user => {
       if (user) {
-        const token = await user.getIdToken();
         const userId = user.uid;
-        setClient(createGraphqlClient(token));
-        setAuth({
-          token,
-          userId,
-        });
-        setFirebaseInitialized(true);
+        const tokenResult = await user.getIdTokenResult();
+        if (tokenResult.claims['https://hasura.io/jwt/claims']) {
+          const token = tokenResult.token;
+          setClient(createGraphqlClient(token));
+          setAuth({
+            token,
+            userId,
+          });
+          setFirebaseInitialized(true);
+        } else {
+          let retries = 0;
+          const retryTokenRetrieval = () => {
+            return new Promise<void>((resolve) => {
+              setTimeout(async () => {
+                if (retries === 0) {
+                  retries =+ 1;
+                  resolve();
+                } else if (retries >= 0 && retries < 6) {
+                  retries += 1;
+                  const tokenResult = await firebase.auth().currentUser.getIdTokenResult(true);
+                  if (tokenResult.claims['https://hasura.io/jwt/claims']) {
+                    console.log('whoa 3');
+                    const token = tokenResult.token;
+                    setClient(createGraphqlClient(token));
+                    setAuth({
+                      token,
+                      userId,
+                    });
+                    setFirebaseInitialized(true);
+                    retries = -1;
+                    resolve();
+                  }
+                } else {
+                  resolve();
+                }
+              }, 100)
+            });
+          }
+
+          while (retries >= 0 && retries < 6) {
+            console.log('retrying at ' + retries);
+            await retryTokenRetrieval();
+          }
+        }
       } else {
         setAuth({
           token: null,
@@ -55,6 +92,9 @@ const App: React.FC = () => {
         setFirebaseInitialized(true);
       }
     });
+    return () => {
+      unsubscribeFromFirebaseAuth();
+    };
   }, []);
 
   if (!fontsLoaded || authButNoClient || !firebaseInitialized) {
@@ -66,11 +106,13 @@ const App: React.FC = () => {
   }
 
   return (
-    <AuthContextProvider value={auth}>
-      <ApolloProvider client={client}>
-        <NavContainer />
-      </ApolloProvider>
-    </AuthContextProvider>
+    <AppActionsProvider>
+      <AuthProvider value={auth}>
+        <ApolloProvider client={client}>
+          <NavContainer />
+        </ApolloProvider>
+      </AuthProvider>
+    </AppActionsProvider>
   );
 };
 

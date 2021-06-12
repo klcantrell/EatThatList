@@ -18,7 +18,7 @@ import {
   Right,
   Container,
 } from 'native-base';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient, LinearGradientProps } from 'expo-linear-gradient';
 import { StackActions, NavigationActions } from 'react-navigation';
 import { NavigationStackProp } from 'react-navigation-stack';
 import { useQuery, useMutation } from '@apollo/react-hooks';
@@ -30,6 +30,12 @@ import { AppActionsContext, AuthContext } from '../common/context';
 import InviteCard from './InviteCard';
 import { GET_NEW_INVITES, GET_LISTS } from './InviteCard';
 import Logo from './Logo';
+
+interface FixedLinearGradientProps extends LinearGradientProps {
+  children?: React.ReactNode
+}
+
+const FixedLinearGradient: React.FC<FixedLinearGradientProps> = LinearGradient;
 
 interface Props {
   navigation: NavigationStackProp;
@@ -159,7 +165,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
   };
 
   React.useEffect(() => {
-    return subscribeToMoreLists({
+    const unsubscribe = subscribeToMoreLists({
       document: GET_LISTS_SUBSCRIPTION,
       variables: {
         userId: auth.userId,
@@ -192,6 +198,9 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
         };
       },
     });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const onSignout = () => {
@@ -259,7 +268,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.container}>
           <StatusBar barStyle="light-content" />
-          <LinearGradient
+          <FixedLinearGradient
             colors={['#CE6D8B', '#d47d99', '#d98ca6', '#da90a9', '#df9fb4']}
             style={styles.linearGradient}
           >
@@ -320,7 +329,7 @@ const AvailableLists: React.FC<Props> = ({ navigation }) => {
               onPress={toggleShowDialog}
               style={styles.fabBtn}
             />
-          </LinearGradient>
+          </FixedLinearGradient>
         </View>
       </TouchableWithoutFeedback>
     </Container>

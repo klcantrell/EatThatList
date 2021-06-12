@@ -112,7 +112,7 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
   ] = useMutation(DELETE_LIST_ITEM);
 
   React.useEffect(() => {
-    return subscribeToMore({
+    const unsubscribe = subscribeToMore({
       document: GET_LIST_ITEMS_SUBSCRIPTION,
       variables: {
         listId,
@@ -145,6 +145,9 @@ const SelectedList: React.FC<Props> = ({ navigation }) => {
         };
       },
     });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const onAddListItem = (itemDescription: string) => {

@@ -13,10 +13,16 @@ import {
   NavigationScreenProp,
   NavigationActions,
 } from 'react-navigation';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient, LinearGradientProps } from 'expo-linear-gradient';
 import firebase from 'firebase/app';
 import { AuthContext } from '../common/context';
 import Logo from './Logo';
+
+interface FixedLinearGradientProps extends LinearGradientProps {
+  children?: React.ReactNode
+}
+
+const FixedLinearGradient: React.FC<FixedLinearGradientProps> = LinearGradient;
 
 interface Props {
   navigation: NavigationScreenProp<{}>;
@@ -60,7 +66,7 @@ const Login: React.FC<Props> = ({ navigation }) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
-        <LinearGradient
+        <FixedLinearGradient
           colors={['#CE6D8B', '#d47d99', '#d98ca6', '#da90a9', '#df9fb4']}
           style={styles.linearGradient}
         >
@@ -134,7 +140,7 @@ const Login: React.FC<Props> = ({ navigation }) => {
               </Button>
             </View>
           </View>
-        </LinearGradient>
+        </FixedLinearGradient>
       </View>
     </TouchableWithoutFeedback>
   );
